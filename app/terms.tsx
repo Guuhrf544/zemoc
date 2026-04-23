@@ -88,7 +88,7 @@ export default function TermsScreen() {
           7. Contact
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
-          Questions? Write to support@zemoc.app.
+          Questions? Write to elogia.dev@gmail.com.
         </ThemedText>
       </ScrollView>
     </>

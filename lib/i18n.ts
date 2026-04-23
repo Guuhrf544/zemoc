@@ -204,7 +204,7 @@ const STRINGS = {
     'settings.export.failed': 'Export failed',
     'settings.export.failed.default': 'Something went wrong',
     'settings.about.noEmail': 'No email app',
-    'settings.about.noEmailMsg': 'Couldn\'t open mail. Write to support@zemoc.app',
+    'settings.about.noEmailMsg': 'Couldn\'t open mail. Write to elogia.dev@gmail.com',
 
     // PIN
     'pin.setup.title': 'Create PIN',
@@ -475,7 +475,7 @@ const STRINGS = {
     'settings.export.failed': 'Falha ao exportar',
     'settings.export.failed.default': 'Algo deu errado',
     'settings.about.noEmail': 'Sem app de e-mail',
-    'settings.about.noEmailMsg': 'Não foi possível abrir o e-mail. Escreva para support@zemoc.app',
+    'settings.about.noEmailMsg': 'Não foi possível abrir o e-mail. Escreva para elogia.dev@gmail.com',
 
     // PIN
     'pin.setup.title': 'Criar PIN',

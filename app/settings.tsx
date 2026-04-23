@@ -256,7 +256,7 @@ export default function SettingsScreen() {
             icon="bubble.left"
             label={t('settings.about.support')}
             onPress={() =>
-              Linking.openURL('mailto:support@zemoc.app').catch(() =>
+              Linking.openURL('mailto:elogia.dev@gmail.com').catch(() =>
                 Alert.alert(
                   t('settings.about.noEmail'),
                   t('settings.about.noEmailMsg')

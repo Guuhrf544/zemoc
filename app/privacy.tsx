@@ -89,7 +89,7 @@ export default function PrivacyScreen() {
           7. Contact
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
-          Privacy questions? Write to support@zemoc.app.
+          Privacy questions? Write to elogia.dev@gmail.com.
         </ThemedText>
       </ScrollView>
     </>
