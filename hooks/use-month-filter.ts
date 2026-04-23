@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { create } from 'zustand';
 
 import { formatLongMonth } from '@/lib/format';
 import { useSettings } from '@/lib/store/settings';
@@ -16,8 +17,19 @@ export interface MonthFilter {
   setOffset: (o: number) => void;
 }
 
+interface OffsetStore {
+  offset: number;
+  setOffset: (o: number) => void;
+}
+
+const useMonthOffset = create<OffsetStore>((set) => ({
+  offset: 0,
+  setOffset: (o) => set({ offset: o }),
+}));
+
 export function useMonthFilter(): MonthFilter {
-  const [offset, setOffset] = useState(0);
+  const offset = useMonthOffset((s) => s.offset);
+  const setOffset = useMonthOffset((s) => s.setOffset);
   useSettings((s) => s.settings.language);
 
   const monthDate = useMemo(() => {
@@ -35,9 +47,9 @@ export function useMonthFilter(): MonthFilter {
     offset,
     isCurrent: offset === 0,
     canGoForward: true,
-    prev: () => setOffset((o) => o - 1),
-    next: () => setOffset((o) => o + 1),
+    prev: () => setOffset(offset - 1),
+    next: () => setOffset(offset + 1),
     reset: () => setOffset(0),
-    setOffset: (o: number) => setOffset(o),
+    setOffset,
   };
 }
