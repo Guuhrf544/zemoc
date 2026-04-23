@@ -31,7 +31,23 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
+
+# EAS / Expo credentials
+credentials.json
+secrets.json
+eas.json.local
+
+# Firebase / Google services (se um dia forem adicionados)
+google-services.json
+GoogleService-Info.plist
+
+# iOS signing
+*.cer
+*.certSigningRequest
+*.provisionprofile
 
 # typescript
 *.tsbuildinfo
