@@ -13,6 +13,7 @@ import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useMonthFilter } from '@/hooks/use-month-filter';
 import { subscriptionsSplitForMonth, upcomingCharges } from '@/lib/billing';
+import { cumulativeCarryover } from '@/lib/carryover';
 import { useT } from '@/lib/i18n';
 import { expensesSplit, useExpenses } from '@/lib/store/expenses';
 import { incomeForMonth, useIncomes } from '@/lib/store/incomes';
@@ -45,7 +46,11 @@ export default function DashboardScreen() {
 
   const spent = expenseSplit.actual + subsSplit.actual;
   const planned = expenseSplit.planned + subsSplit.planned;
-  const balance = income - spent - planned;
+  const previousBalance = useMemo(
+    () => cumulativeCarryover(filter.monthDate, incomes, expenses, subscriptions),
+    [filter.monthDate, incomes, expenses, subscriptions]
+  );
+  const balance = previousBalance + income - spent - planned;
 
   const upcoming = useMemo(
     () => (filter.isCurrent ? upcomingCharges(subscriptions, new Date(), 3) : []),
@@ -64,6 +69,7 @@ export default function DashboardScreen() {
       <View style={{ marginTop: Spacing.lg }}>
         <BalanceCard
           balance={balance}
+          previousBalance={previousBalance}
           subtitle={t('home.balance.subtitle', { month: filter.monthLabel })}
         />
       </View>

@@ -10,14 +10,17 @@ import { ThemedText } from './themed-text';
 interface Props {
   balance: number;
   subtitle?: string;
+  previousBalance?: number;
 }
 
-export function BalanceCard({ balance, subtitle }: Props) {
+export function BalanceCard({ balance, subtitle, previousBalance }: Props) {
   const scheme = useColorScheme() ?? 'dark';
   const palette = Colors[scheme];
   const t = useT();
   const money = useMoney();
   const positive = balance >= 0;
+  const showPrevious =
+    previousBalance !== undefined && Math.abs(previousBalance) >= 0.005;
 
   return (
     <View
@@ -40,6 +43,11 @@ export function BalanceCard({ balance, subtitle }: Props) {
       >
         {money(balance)}
       </ThemedText>
+      {showPrevious ? (
+        <ThemedText style={[styles.subtitle, { color: palette.heroMuted }]}>
+          {t('home.balance.previous', { amount: money(previousBalance!) })}
+        </ThemedText>
+      ) : null}
       {subtitle ? (
         <ThemedText style={[styles.subtitle, { color: palette.heroMuted }]}>
           {subtitle}
