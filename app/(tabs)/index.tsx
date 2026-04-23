@@ -1,98 +1,134 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { useMemo } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { BalanceCard } from '@/components/balance-card';
+import { MonthSelector } from '@/components/month-selector';
+import { ProfileButton } from '@/components/profile-button';
+import { Screen } from '@/components/screen';
+import { StatCard } from '@/components/stat-card';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { UpcomingCharges } from '@/components/upcoming-charges';
+import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useMonthFilter } from '@/hooks/use-month-filter';
+import { subscriptionsSplitForMonth, upcomingCharges } from '@/lib/billing';
+import { useT } from '@/lib/i18n';
+import { expensesSplit, useExpenses } from '@/lib/store/expenses';
+import { incomeForMonth, useIncomes } from '@/lib/store/incomes';
+import { useSubscriptions } from '@/lib/store/subscriptions';
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
+  const scheme = useColorScheme() ?? 'dark';
+  const palette = Colors[scheme];
+  const t = useT();
+
+  const subscriptions = useSubscriptions((s) => s.items);
+  const expenses = useExpenses((s) => s.items);
+  const incomes = useIncomes((s) => s.items);
+
+  const filter = useMonthFilter();
+  const now = new Date();
+
+  const income = useMemo(
+    () => incomeForMonth(incomes, filter.monthIso),
+    [incomes, filter.monthIso]
+  );
+  const expenseSplit = useMemo(
+    () => expensesSplit(expenses, filter.monthIso, now),
+    [expenses, filter.monthIso, now]
+  );
+  const subsSplit = useMemo(
+    () => subscriptionsSplitForMonth(subscriptions, filter.monthDate, now),
+    [subscriptions, filter.monthDate, now]
+  );
+
+  const spent = expenseSplit.actual + subsSplit.actual;
+  const planned = expenseSplit.planned + subsSplit.planned;
+  const balance = income - spent - planned;
+
+  const upcoming = useMemo(
+    () => (filter.isCurrent ? upcomingCharges(subscriptions, new Date(), 3) : []),
+    [subscriptions, filter.isCurrent]
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <Screen
+      title={t('home.title')}
+      subtitle={t('home.subtitle')}
+      scrollable
+      right={<ProfileButton />}
+    >
+      <MonthSelector filter={filter} />
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <View style={{ marginTop: Spacing.lg }}>
+        <BalanceCard
+          balance={balance}
+          subtitle={t('home.balance.subtitle', { month: filter.monthLabel })}
+        />
+      </View>
+
+      <View style={styles.statsRow}>
+        <StatCard label={t('home.stat.income')} value={income} tone="positive" />
+        <StatCard label={t('home.stat.spent')} value={spent} tone="negative" />
+      </View>
+
+      <View style={{ marginTop: Spacing.md }}>
+        <StatCard label={t('home.stat.planned')} value={planned} tone="neutral" />
+      </View>
+
+      {filter.isCurrent ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <ThemedText style={[styles.sectionTitle, { color: palette.text }]}>
+              {t('home.upcoming')}
+            </ThemedText>
+            {upcoming.length > 0 ? (
+              <Pressable onPress={() => router.push('/(tabs)/subscriptions')}>
+                <ThemedText style={[styles.link, { color: palette.tint }]}>
+                  {t('home.seeAll')}
+                </ThemedText>
+              </Pressable>
+            ) : null}
+          </View>
+          {upcoming.length > 0 ? (
+            <UpcomingCharges items={upcoming} />
+          ) : (
+            <View
+              style={[
+                styles.placeholder,
+                { backgroundColor: palette.surface, borderColor: palette.border },
+              ]}
+            >
+              <ThemedText style={[styles.placeholderText, { color: palette.textMuted }]}>
+                {t('home.upcoming.empty')}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+      ) : null}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  statsRow: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg },
+  section: { marginTop: Spacing.xl, gap: Spacing.md },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  sectionTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+    lineHeight: FontSize.lg * 1.3,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  link: { fontSize: FontSize.sm, fontWeight: '600', lineHeight: FontSize.sm * 1.4 },
+  placeholder: {
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    padding: Spacing.lg,
   },
+  placeholderText: { fontSize: FontSize.md, lineHeight: FontSize.md * 1.3 },
 });
