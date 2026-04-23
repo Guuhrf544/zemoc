@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useCallback, useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
 import { EmptyState } from '@/components/empty-state';
@@ -19,8 +20,23 @@ export default function SubscriptionsScreen() {
   const t = useT();
   const money = useMoney();
 
-  const total = subscriptionsMonthlyTotal(items);
-  const sorted = [...items].sort((a, b) => a.billingDay - b.billingDay);
+  const total = useMemo(() => subscriptionsMonthlyTotal(items), [items]);
+  const sorted = useMemo(
+    () => [...items].sort((a, b) => a.billingDay - b.billingDay),
+    [items]
+  );
+
+  const goSubscription = useCallback(
+    (id: string) => router.push(`/subscription/${id}` as never),
+    []
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: (typeof sorted)[number] }) => (
+      <SubscriptionItem subscription={item} onPress={goSubscription} />
+    ),
+    [goSubscription]
+  );
 
   return (
     <Screen title={t('subs.title')} subtitle={t('subs.subtitle')}>
@@ -47,15 +63,14 @@ export default function SubscriptionsScreen() {
         <FlatList
           data={sorted}
           keyExtractor={(i) => i.id}
-          renderItem={({ item }) => (
-            <SubscriptionItem
-              subscription={item}
-              onPress={() => router.push(`/subscription/${item.id}`)}
-            />
-          )}
+          renderItem={renderItem}
           ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={7}
         />
       )}
 

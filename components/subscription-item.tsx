@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
@@ -10,10 +11,10 @@ import { ThemedText } from './themed-text';
 
 interface Props {
   subscription: Subscription;
-  onPress: () => void;
+  onPress: (id: string) => void;
 }
 
-export function SubscriptionItem({ subscription, onPress }: Props) {
+function SubscriptionItemInner({ subscription, onPress }: Props) {
   const scheme = useColorScheme() ?? 'dark';
   const palette = Colors[scheme];
   const t = useT();
@@ -23,9 +24,14 @@ export function SubscriptionItem({ subscription, onPress }: Props) {
     ? t(`category.${subscription.category}` as never)
     : '';
 
+  const handlePress = useCallback(
+    () => onPress(subscription.id),
+    [onPress, subscription.id]
+  );
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.row,
         {
@@ -55,6 +61,8 @@ export function SubscriptionItem({ subscription, onPress }: Props) {
     </Pressable>
   );
 }
+
+export const SubscriptionItem = memo(SubscriptionItemInner);
 
 const styles = StyleSheet.create({
   row: {

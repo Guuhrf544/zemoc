@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
 import { FAB } from '@/components/fab';
@@ -46,6 +46,22 @@ export default function IncomeScreen() {
 
   const now = new Date().getTime();
 
+  const goIncome = useCallback(
+    (id: string) => router.push(`/income/${id}` as never),
+    []
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: (typeof listItems)[number] }) => (
+      <IncomeItem
+        income={item}
+        planned={new Date(item.date).getTime() > now}
+        onPress={goIncome}
+      />
+    ),
+    [goIncome, now]
+  );
+
   const handleQuickAdd = (d: {
     amount: number;
     source: string;
@@ -91,13 +107,7 @@ export default function IncomeScreen() {
       <FlatList
         data={listItems}
         keyExtractor={(i) => i.id}
-        renderItem={({ item }) => (
-          <IncomeItem
-            income={item}
-            planned={new Date(item.date).getTime() > now}
-            onPress={() => router.push(`/income/${item.id}`)}
-          />
-        )}
+        renderItem={renderItem}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
@@ -108,6 +118,10 @@ export default function IncomeScreen() {
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        removeClippedSubviews
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={7}
       />
       <FAB onPress={() => router.push('/income/new')} />
     </Screen>

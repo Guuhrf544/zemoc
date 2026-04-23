@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.zemoc"
+      "bundleIdentifier": "app.zemoc",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow Zemoc to pick a profile photo from your library.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "app.zemoc",
@@ -21,7 +25,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",

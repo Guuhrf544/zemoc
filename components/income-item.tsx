@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
@@ -10,20 +11,22 @@ import { ThemedText } from './themed-text';
 
 interface Props {
   income: Income;
-  onPress: () => void;
+  onPress: (id: string) => void;
   planned?: boolean;
 }
 
-export function IncomeItem({ income, onPress, planned }: Props) {
+function IncomeItemInner({ income, onPress, planned }: Props) {
   const scheme = useColorScheme() ?? 'dark';
   const palette = Colors[scheme];
   const t = useT();
   const money = useMoney();
   const dotColor = INCOME_CATEGORY_COLOR[income.category];
 
+  const handlePress = useCallback(() => onPress(income.id), [onPress, income.id]);
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.row,
         {
@@ -62,6 +65,8 @@ export function IncomeItem({ income, onPress, planned }: Props) {
     </Pressable>
   );
 }
+
+export const IncomeItem = memo(IncomeItemInner);
 
 const styles = StyleSheet.create({
   row: {

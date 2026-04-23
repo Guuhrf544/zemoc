@@ -28,7 +28,7 @@ export default function DashboardScreen() {
   const incomes = useIncomes((s) => s.items);
 
   const filter = useMonthFilter();
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
 
   const income = useMemo(
     () => incomeForMonth(incomes, filter.monthIso),

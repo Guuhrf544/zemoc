@@ -32,10 +32,17 @@ export default function PinSetupScreen() {
   };
 
   const handleCurrent = async (pin: string) => {
-    const ok = await verifyPin(pin);
-    if (ok) {
+    const result = await verifyPin(pin);
+    if (result.ok) {
       setError(undefined);
       setStep('new');
+      return;
+    }
+    if (result.reason === 'locked') {
+      const seconds = Math.ceil((result.until - Date.now()) / 1000);
+      setError(t('pin.unlock.locked', { seconds: String(seconds) }));
+    } else if (result.reason === 'wrong') {
+      setError(t('pin.unlock.remaining', { remaining: String(result.remaining) }));
     } else {
       setError(t('pin.unlock.wrong'));
     }

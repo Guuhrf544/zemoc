@@ -2,27 +2,96 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
-import type { Expense, Income, Subscription } from '@/types/models';
+import {
+  ALL_CATEGORIES,
+  ALL_INCOME_CATEGORIES,
+  type Expense,
+  type Income,
+  type Subscription,
+} from '@/types/models';
 
 import { useExpenses } from './store/expenses';
 import { useIncomes } from './store/incomes';
+import { useProfile, type Profile } from './store/profile';
+import { useSettings, type Settings } from './store/settings';
 import { useSubscriptions } from './store/subscriptions';
 
-interface Backup {
-  version: 1;
+const SUPPORTED_VERSIONS = [1, 2] as const;
+type BackupVersion = (typeof SUPPORTED_VERSIONS)[number];
+
+interface BackupV2 {
+  version: 2;
   createdAt: string;
   incomes: Income[];
   expenses: Expense[];
   subscriptions: Subscription[];
+  profile: Profile;
+  settings: Settings;
+}
+
+const isStr = (v: unknown): v is string => typeof v === 'string';
+const isNum = (v: unknown): v is number =>
+  typeof v === 'number' && Number.isFinite(v);
+const isOptStr = (v: unknown): v is string | undefined =>
+  v === undefined || typeof v === 'string';
+const isOptNum = (v: unknown): v is number | undefined =>
+  v === undefined || (typeof v === 'number' && Number.isFinite(v));
+
+function validExpense(x: unknown): x is Expense {
+  if (!x || typeof x !== 'object') return false;
+  const o = x as Partial<Expense>;
+  return (
+    isStr(o.id) &&
+    isStr(o.description) &&
+    isNum(o.amount) &&
+    isStr(o.date) &&
+    isStr(o.category) &&
+    ALL_CATEGORIES.includes(o.category as never) &&
+    isStr(o.createdAt)
+  );
+}
+
+function validIncome(x: unknown): x is Income {
+  if (!x || typeof x !== 'object') return false;
+  const o = x as Partial<Income>;
+  return (
+    isStr(o.id) &&
+    isStr(o.source) &&
+    isNum(o.amount) &&
+    isStr(o.date) &&
+    isStr(o.category) &&
+    ALL_INCOME_CATEGORIES.includes(o.category as never) &&
+    isStr(o.createdAt)
+  );
+}
+
+function validSubscription(x: unknown): x is Subscription {
+  if (!x || typeof x !== 'object') return false;
+  const o = x as Partial<Subscription>;
+  return (
+    isStr(o.id) &&
+    isStr(o.name) &&
+    isNum(o.amount) &&
+    (o.billingPeriod === 'monthly' || o.billingPeriod === 'yearly') &&
+    isNum(o.billingDay) &&
+    isOptNum(o.billingMonth) &&
+    (o.category === undefined ||
+      (isStr(o.category) && ALL_CATEGORIES.includes(o.category as never))) &&
+    isOptStr(o.notes) &&
+    isStr(o.createdAt) &&
+    isOptStr(o.lastUsedAt)
+  );
 }
 
 export const exportBackup = async (): Promise<void> => {
-  const backup: Backup = {
-    version: 1,
+  const backup: BackupV2 = {
+    version: 2,
     createdAt: new Date().toISOString(),
     incomes: useIncomes.getState().items,
     expenses: useExpenses.getState().items,
     subscriptions: useSubscriptions.getState().items,
+    profile: useProfile.getState().profile,
+    settings: useSettings.getState().settings,
   };
 
   const json = JSON.stringify(backup, null, 2);
@@ -34,8 +103,9 @@ export const exportBackup = async (): Promise<void> => {
     encoding: FileSystem.EncodingType.UTF8,
   });
 
-  const available = await Sharing.isAvailableAsync();
-  if (!available) throw new Error('Sharing not available on this device');
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('Sharing not available on this device');
+  }
 
   await Sharing.shareAsync(uri, {
     mimeType: 'application/json',
@@ -58,19 +128,58 @@ export const importBackup = async (): Promise<boolean> => {
     encoding: FileSystem.EncodingType.UTF8,
   });
 
-  const parsed = JSON.parse(content) as Partial<Backup>;
-  if (
-    typeof parsed.version !== 'number' ||
-    !Array.isArray(parsed.incomes) ||
-    !Array.isArray(parsed.expenses) ||
-    !Array.isArray(parsed.subscriptions)
-  ) {
-    throw new Error('Invalid backup file');
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error('File is not valid JSON');
   }
 
-  useIncomes.setState({ items: parsed.incomes as Income[] });
-  useExpenses.setState({ items: parsed.expenses as Expense[] });
-  useSubscriptions.setState({ items: parsed.subscriptions as Subscription[] });
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Malformed backup');
+  }
+  const b = parsed as Partial<BackupV2>;
+
+  if (
+    typeof b.version !== 'number' ||
+    !SUPPORTED_VERSIONS.includes(b.version as BackupVersion)
+  ) {
+    throw new Error('Unsupported backup version');
+  }
+
+  if (
+    !Array.isArray(b.incomes) ||
+    !Array.isArray(b.expenses) ||
+    !Array.isArray(b.subscriptions)
+  ) {
+    throw new Error('Malformed backup');
+  }
+
+  const expenses = b.expenses.filter(validExpense);
+  const incomes = b.incomes.filter(validIncome);
+  const subscriptions = b.subscriptions.filter(validSubscription);
+
+  const rejected =
+    b.expenses.length - expenses.length +
+    (b.incomes.length - incomes.length) +
+    (b.subscriptions.length - subscriptions.length);
+
+  if (rejected > 0) {
+    throw new Error(`Backup has ${rejected} invalid record(s)`);
+  }
+
+  useIncomes.setState({ items: incomes });
+  useExpenses.setState({ items: expenses });
+  useSubscriptions.setState({ items: subscriptions });
+
+  if (b.version >= 2) {
+    if (b.profile && typeof b.profile === 'object') {
+      useProfile.setState({ profile: b.profile as Profile });
+    }
+    if (b.settings && typeof b.settings === 'object') {
+      useSettings.setState({ settings: b.settings as Settings });
+    }
+  }
 
   return true;
 };

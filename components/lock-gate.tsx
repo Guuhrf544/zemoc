@@ -1,5 +1,5 @@
 import * as LocalAuthentication from 'expo-local-authentication';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -27,6 +27,9 @@ export function LockGate() {
     useSettings.persist.hasHydrated()
   );
   const [error, setError] = useState<string | undefined>();
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const biometricTriedRef = useRef(false);
 
   useEffect(() => {
     if (hydrated) return;
@@ -36,11 +39,40 @@ export function LockGate() {
 
   const shouldLock = hydrated && securityPin && !unlocked;
 
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= lockedUntil) {
+        setLockedUntil(null);
+        setError(undefined);
+      }
+    }, 500);
+    return () => clearInterval(id);
+  }, [lockedUntil]);
+
+  const isLocked = lockedUntil !== null && now < lockedUntil;
+  const secondsLeft = isLocked ? Math.ceil((lockedUntil! - now) / 1000) : 0;
+
   const handlePin = async (pin: string) => {
-    const ok = await verifyPin(pin);
-    if (ok) {
+    if (isLocked) return;
+    const result = await verifyPin(pin);
+    if (result.ok) {
       setError(undefined);
+      setLockedUntil(null);
       setUnlocked(true);
+      return;
+    }
+    if (result.reason === 'locked') {
+      setLockedUntil(result.until);
+      setError(
+        t('pin.unlock.locked', {
+          seconds: String(Math.ceil((result.until - Date.now()) / 1000)),
+        })
+      );
+    } else if (result.reason === 'wrong') {
+      setError(t('pin.unlock.remaining', { remaining: String(result.remaining) }));
     } else {
       setError(t('pin.unlock.wrong'));
     }
@@ -59,7 +91,12 @@ export function LockGate() {
   };
 
   useEffect(() => {
-    if (shouldLock && biometric) {
+    if (!shouldLock) {
+      biometricTriedRef.current = false;
+      return;
+    }
+    if (biometric && !biometricTriedRef.current) {
+      biometricTriedRef.current = true;
       tryBiometric();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,10 +110,14 @@ export function LockGate() {
         <View style={styles.center}>
           <PinPad
             title={t('pin.unlock.title')}
-            error={error}
+            error={
+              isLocked
+                ? t('pin.unlock.locked', { seconds: String(secondsLeft) })
+                : error
+            }
             onComplete={handlePin}
           />
-          {biometric ? (
+          {biometric && !isLocked ? (
             <Pressable
               onPress={tryBiometric}
               style={({ pressed }) => [

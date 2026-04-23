@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 import { LockGate } from '@/components/lock-gate';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAutoLock } from '@/lib/use-autolock';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -39,6 +40,7 @@ const NavThemeLight = {
 export default function RootLayout() {
   const scheme = useColorScheme() ?? 'dark';
   const navTheme = scheme === 'dark' ? NavThemeDark : NavThemeLight;
+  useAutoLock();
 
   return (
     <SafeAreaProvider>

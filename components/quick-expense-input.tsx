@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Brand, Colors, FontSize, Radius, Spacing } from '@/constants/theme';
+import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { parseQuickExpense } from '@/lib/categorize';
 import { useMoney } from '@/lib/format';

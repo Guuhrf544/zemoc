@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
+import { Colors, FontSize, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 import { ThemedText } from './themed-text';

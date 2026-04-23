@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
 import { CategoryBarChart, type CategoryTotal } from '@/components/category-bar-chart';
@@ -54,6 +54,22 @@ export default function ExpensesScreen() {
   const sorted = useMemo(
     () => [...monthItems].sort((a, b) => b.date.localeCompare(a.date)),
     [monthItems]
+  );
+
+  const goExpense = useCallback(
+    (id: string) => router.push(`/expense/${id}` as never),
+    []
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: (typeof sorted)[number] }) => (
+      <ExpenseItem
+        expense={item}
+        planned={isPlanned(item)}
+        onPress={goExpense}
+      />
+    ),
+    [goExpense]
   );
 
   const handleQuickAdd = (d: {
@@ -117,13 +133,7 @@ export default function ExpensesScreen() {
       <FlatList
         data={sorted}
         keyExtractor={(i) => i.id}
-        renderItem={({ item }) => (
-          <ExpenseItem
-            expense={item}
-            planned={isPlanned(item)}
-            onPress={() => router.push(`/expense/${item.id}`)}
-          />
-        )}
+        renderItem={renderItem}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
@@ -134,6 +144,10 @@ export default function ExpensesScreen() {
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        removeClippedSubviews
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={7}
       />
     </Screen>
   );
