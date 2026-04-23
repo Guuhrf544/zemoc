@@ -35,18 +35,16 @@ export const useIncomes = create<State>()(
       name: 'zemoc-incomes',
       storage: createJSONStorage(() => AsyncStorage),
       version: 4,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version: number) => {
-        if (version < 3 && persisted?.items) {
+        if (version < 3 && Array.isArray(persisted?.items)) {
           persisted.items = persisted.items.map((i: Record<string, unknown>) => ({
             ...i,
             category: i.category ?? 'Other',
           }));
         }
-        if (version < 4 && persisted?.items) {
+        if (version < 4 && Array.isArray(persisted?.items)) {
           persisted.items = persisted.items.map((i: Record<string, unknown>) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { frequency, recurring, ...rest } = i;
+            const { frequency: _f, recurring: _r, ...rest } = i;
             return rest;
           });
         }

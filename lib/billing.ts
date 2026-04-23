@@ -29,12 +29,12 @@ export const upcomingCharges = (
   limit = 5
 ): UpcomingCharge[] => {
   const msPerDay = 24 * 60 * 60 * 1000;
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const noonToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
 
   return subs
     .map((s) => {
       const date = nextBillingDate(s, now);
-      const daysUntil = Math.round((date.getTime() - startOfToday.getTime()) / msPerDay);
+      const daysUntil = Math.round((date.getTime() - noonToday.getTime()) / msPerDay);
       return { subscription: s, date, daysUntil };
     })
     .sort((a, b) => a.date.getTime() - b.date.getTime())
@@ -53,12 +53,13 @@ export const subscriptionsSplitForMonth = (
 ): { actual: number; planned: number } => {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
-  const lastDay = new Date(year, month + 1, 0);
-  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const lastDay = new Date(year, month, daysInMonth, 12, 0, 0, 0);
+  const firstDay = new Date(year, month, 1, 12, 0, 0, 0);
 
   let cutoff: Date;
   if (lastDay.getTime() < now.getTime()) cutoff = lastDay;
-  else if (firstDay.getTime() > now.getTime()) cutoff = new Date(year, month, 0);
+  else if (firstDay.getTime() > now.getTime()) cutoff = new Date(year, month, 0, 12, 0, 0, 0);
   else cutoff = now;
 
   let actual = 0;
@@ -68,7 +69,7 @@ export const subscriptionsSplitForMonth = (
     const billingDate = new Date(
       year,
       month,
-      Math.max(1, Math.min(28, s.billingDay)),
+      Math.max(1, Math.min(daysInMonth, s.billingDay)),
       12, 0, 0, 0
     );
     if (billingDate.getTime() <= cutoff.getTime()) actual += s.amount;

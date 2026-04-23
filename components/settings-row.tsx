@@ -49,9 +49,9 @@ export function SettingsRow({
           <Switch
             value={switchValue}
             onValueChange={onSwitchChange}
-            trackColor={{ false: palette.surfaceAlt, true: palette.tint }}
-            thumbColor="#FFFFFF"
-            ios_backgroundColor={palette.surfaceAlt}
+            trackColor={{ false: palette.border, true: palette.tint }}
+            thumbColor={scheme === 'light' ? '#FFFFFF' : palette.surface}
+            ios_backgroundColor={palette.border}
           />
         ) : (
           <>

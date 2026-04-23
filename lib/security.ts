@@ -36,7 +36,8 @@ export async function savePin(pin: string): Promise<void> {
 
 export async function verifyPin(pin: string): Promise<VerifyResult> {
   const lockoutRaw = await SecureStore.getItemAsync(LOCKOUT_KEY);
-  const lockedUntil = lockoutRaw ? Number(lockoutRaw) : 0;
+  const parsedLockout = lockoutRaw ? Number(lockoutRaw) : 0;
+  const lockedUntil = Number.isFinite(parsedLockout) ? parsedLockout : 0;
   if (lockedUntil > Date.now()) {
     return { ok: false, reason: 'locked', until: lockedUntil };
   }
@@ -52,7 +53,8 @@ export async function verifyPin(pin: string): Promise<VerifyResult> {
     return { ok: true };
   }
 
-  const prev = Number((await SecureStore.getItemAsync(ATTEMPTS_KEY)) ?? '0');
+  const prevRaw = Number((await SecureStore.getItemAsync(ATTEMPTS_KEY)) ?? '0');
+  const prev = Number.isFinite(prevRaw) ? prevRaw : 0;
   const attempts = prev + 1;
   await SecureStore.setItemAsync(ATTEMPTS_KEY, String(attempts));
 

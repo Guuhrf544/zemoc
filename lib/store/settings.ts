@@ -41,7 +41,6 @@ export const useSettings = create<State>()(
       storage: createJSONStorage(() => AsyncStorage),
       version: 2,
       partialize: (state) => ({ settings: state.settings }) as State,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persisted: any, version) => {
         const prev = (persisted?.settings ?? {}) as Record<string, unknown>;
         if (version < 2) {

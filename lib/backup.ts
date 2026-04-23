@@ -65,6 +65,37 @@ function validIncome(x: unknown): x is Income {
   );
 }
 
+function sanitizeProfile(x: unknown): Profile | null {
+  if (!x || typeof x !== 'object') return null;
+  const o = x as Partial<Profile>;
+  if (!isStr(o.name) || !isStr(o.email)) return null;
+  return {
+    name: o.name,
+    email: o.email,
+    phone: isStr(o.phone) ? o.phone : undefined,
+    photoUri: isStr(o.photoUri) ? o.photoUri : undefined,
+  };
+}
+
+function sanitizeSettings(x: unknown): Settings | null {
+  if (!x || typeof x !== 'object') return null;
+  const o = x as Partial<Settings>;
+  if (o.language !== 'en' && o.language !== 'pt') return null;
+  if (o.currency !== 'EUR' && o.currency !== 'BRL' && o.currency !== 'USD') return null;
+  if (o.appearance !== 'light' && o.appearance !== 'dark' && o.appearance !== 'auto') return null;
+  if (typeof o.notifications !== 'boolean') return null;
+  if (typeof o.securityPin !== 'boolean') return null;
+  if (typeof o.securityBiometric !== 'boolean') return null;
+  return {
+    language: o.language,
+    currency: o.currency,
+    appearance: o.appearance,
+    notifications: o.notifications,
+    securityPin: o.securityPin,
+    securityBiometric: o.securityBiometric,
+  };
+}
+
 function validSubscription(x: unknown): x is Subscription {
   if (!x || typeof x !== 'object') return false;
   const o = x as Partial<Subscription>;
@@ -168,18 +199,24 @@ export const importBackup = async (): Promise<boolean> => {
     throw new Error(`Backup has ${rejected} invalid record(s)`);
   }
 
+  let profileSafe: Profile | null = null;
+  let settingsSafe: Settings | null = null;
+  if (b.version >= 2) {
+    if (b.profile !== undefined) {
+      profileSafe = sanitizeProfile(b.profile);
+      if (!profileSafe) throw new Error('Malformed backup (profile)');
+    }
+    if (b.settings !== undefined) {
+      settingsSafe = sanitizeSettings(b.settings);
+      if (!settingsSafe) throw new Error('Malformed backup (settings)');
+    }
+  }
+
   useIncomes.setState({ items: incomes });
   useExpenses.setState({ items: expenses });
   useSubscriptions.setState({ items: subscriptions });
-
-  if (b.version >= 2) {
-    if (b.profile && typeof b.profile === 'object') {
-      useProfile.setState({ profile: b.profile as Profile });
-    }
-    if (b.settings && typeof b.settings === 'object') {
-      useSettings.setState({ settings: b.settings as Settings });
-    }
-  }
+  if (profileSafe) useProfile.setState({ profile: profileSafe });
+  if (settingsSafe) useSettings.setState({ settings: settingsSafe });
 
   return true;
 };
