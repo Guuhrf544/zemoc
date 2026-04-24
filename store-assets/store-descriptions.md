@@ -67,12 +67,12 @@ KEY FEATURES
 • "Subscriptions to review" — flags services you might want to cancel
 • Monthly navigation — jump to any past or future month
 • Backup and restore in JSON plus CSV export — your data is always portable
-• PIN and biometric lock (Face ID, Touch ID, Android biometrics)
+• PIN and biometric lock (Face ID, Touch ID)
 
 PRIVACY AT THE CORE
 
 • Data stored locally with your device's secure storage
-• PIN stored in iOS Keychain / Android EncryptedSharedPreferences
+• PIN stored in the iOS Keychain
 • No analytics SDKs, no ads, no third-party trackers
 • No account needed — ever
 
@@ -115,12 +115,12 @@ PRINCIPAIS FUNCIONALIDADES
 • "Assinaturas para revisar" — sinaliza serviços que talvez valha a pena cancelar
 • Navegação mensal — volte para qualquer mês passado ou futuro
 • Backup e restauração em JSON e exportação CSV — seus dados sempre portáteis
-• Bloqueio por PIN e biometria (Face ID, Touch ID, biometria Android)
+• Bloqueio por PIN e biometria (Face ID, Touch ID)
 
 PRIVACIDADE NO CENTRO
 
 • Dados armazenados localmente no armazenamento seguro do dispositivo
-• PIN guardado no Keychain do iOS / EncryptedSharedPreferences do Android
+• PIN guardado no Keychain do iOS
 • Sem SDKs de análise, sem anúncios, sem rastreadores de terceiros
 • Sem conta — nunca
 
