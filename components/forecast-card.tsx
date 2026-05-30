@@ -1,11 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
+import { Colors, FontSize, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import type { Forecast } from '@/lib/insights';
 
+import { HeroCard, heroStyles } from './hero-card';
 import { ThemedText } from './themed-text';
 
 interface Props {
@@ -21,16 +22,11 @@ export function ForecastCard({ forecast }: Props) {
   const daysLeft = Math.max(0, forecast.daysInMonth - forecast.dayOfMonth);
 
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: palette.hero, borderColor: palette.heroBorder },
-      ]}
-    >
-      <ThemedText style={[styles.label, { color: palette.heroMuted }]}>
+    <HeroCard>
+      <ThemedText style={[heroStyles.label, { color: palette.heroMuted }]}>
         {t('forecast.title')}
       </ThemedText>
-      <ThemedText style={[styles.value, { color: palette.heroText }]}>
+      <ThemedText style={[heroStyles.value, { color: palette.heroText }]}>
         {money(forecast.projectedMonthEnd)}
       </ThemedText>
       <View style={styles.row}>
@@ -52,30 +48,11 @@ export function ForecastCard({ forecast }: Props) {
           </ThemedText>
         </View>
       </View>
-    </View>
+    </HeroCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    padding: Spacing.xl,
-    gap: Spacing.md,
-  },
-  label: {
-    fontSize: FontSize.sm,
-    fontWeight: '500',
-    lineHeight: FontSize.sm * 1.4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  value: {
-    fontSize: FontSize.display,
-    fontWeight: '700',
-    lineHeight: FontSize.display * 1.2,
-    letterSpacing: -0.5,
-  },
   row: {
     flexDirection: 'row',
     gap: Spacing.lg,

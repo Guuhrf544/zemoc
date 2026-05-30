@@ -1,10 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
+import { Colors, FontSize, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 
+import { HeroCard, heroStyles } from './hero-card';
 import { ThemedText } from './themed-text';
 
 interface Props {
@@ -23,21 +24,13 @@ export function BalanceCard({ balance, subtitle, previousBalance }: Props) {
     previousBalance !== undefined && Math.abs(previousBalance) >= 0.005;
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: palette.hero,
-          borderColor: palette.heroBorder,
-        },
-      ]}
-    >
-      <ThemedText style={[styles.label, { color: palette.heroMuted }]}>
+    <HeroCard gap={Spacing.xs}>
+      <ThemedText style={[heroStyles.label, { color: palette.heroMuted }]}>
         {t('home.balance.label')}
       </ThemedText>
       <ThemedText
         style={[
-          styles.value,
+          heroStyles.value,
           { color: positive ? palette.heroPositive : palette.danger },
         ]}
       >
@@ -53,30 +46,11 @@ export function BalanceCard({ balance, subtitle, previousBalance }: Props) {
           {subtitle}
         </ThemedText>
       ) : null}
-    </View>
+    </HeroCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    padding: Spacing.xl,
-    gap: Spacing.xs,
-  },
-  label: {
-    fontSize: FontSize.sm,
-    fontWeight: '500',
-    lineHeight: FontSize.sm * 1.4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  value: {
-    fontSize: FontSize.display,
-    fontWeight: '700',
-    lineHeight: FontSize.display * 1.2,
-    letterSpacing: -0.5,
-  },
   subtitle: {
     fontSize: FontSize.sm,
     lineHeight: FontSize.sm * 1.4,
