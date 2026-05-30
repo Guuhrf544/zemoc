@@ -1,29 +1,32 @@
-import { parseMoneyInput } from '@/lib/format';
 import type { IncomeCategory } from '@/types/models';
 
+import { guessFrom, parseQuickEntry } from './quick-parse';
+
 const KEYWORDS: Record<IncomeCategory, string[]> = {
-  Salary: ['salary', 'wage', 'paycheck', 'payday', 'payroll', 'salario', 'salário'],
+  Salary: [
+    'salary', 'wage', 'paycheck', 'payday', 'payroll',
+    'salário', 'pagamento', 'contracheque', 'holerite',
+  ],
   Freelance: [
     'freelance', 'gig', 'contract', 'project', 'client', 'consulting',
-    'commission',
+    'commission', 'freela', 'projeto', 'cliente', 'bico',
   ],
-  Bonus: ['bonus', 'tip', 'tips', '13th', 'thirteenth'],
+  Bonus: ['bonus', 'tip', 'tips', '13th', 'thirteenth', 'bônus', 'gorjeta', 'décimo'],
   Investment: [
     'dividend', 'dividends', 'stocks', 'stock', 'interest', 'crypto', 'btc',
     'eth', 'investment', 'rental', 'rent income', 'yield',
+    'dividendos', 'juros', 'rendimento', 'ações', 'investimento',
   ],
-  Gift: ['gift', 'present'],
-  Refund: ['refund', 'reimbursement', 'chargeback', 'cashback'],
+  Gift: ['gift', 'present', 'presente'],
+  Refund: [
+    'refund', 'reimbursement', 'chargeback', 'cashback',
+    'reembolso', 'estorno', 'devolução',
+  ],
   Other: [],
 };
 
-export const guessIncomeCategory = (source: string): IncomeCategory => {
-  const lower = source.toLowerCase();
-  for (const category of Object.keys(KEYWORDS) as IncomeCategory[]) {
-    if (KEYWORDS[category].some((k) => lower.includes(k))) return category;
-  }
-  return 'Other';
-};
+export const guessIncomeCategory = (source: string): IncomeCategory =>
+  guessFrom(KEYWORDS, source, 'Other');
 
 export interface ParsedQuickIncome {
   amount: number;
@@ -32,20 +35,11 @@ export interface ParsedQuickIncome {
 }
 
 export const parseQuickIncome = (raw: string): ParsedQuickIncome | null => {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-
-  const leading = trimmed.match(/^([\d][\d.,]*)\s+(.+)$/);
-  const trailing = trimmed.match(/^(.+?)\s+([\d][\d.,]*)$/);
-
-  const match = leading ?? trailing;
-  if (!match) return null;
-
-  const amountStr = leading ? match[1] : match[2];
-  const source = (leading ? match[2] : match[1]).trim();
-
-  const amount = parseMoneyInput(amountStr);
-  if (!Number.isFinite(amount) || amount <= 0 || !source) return null;
-
-  return { amount, source, category: guessIncomeCategory(source) };
+  const parsed = parseQuickEntry(raw);
+  if (!parsed) return null;
+  return {
+    amount: parsed.amount,
+    source: parsed.label,
+    category: guessIncomeCategory(parsed.label),
+  };
 };
