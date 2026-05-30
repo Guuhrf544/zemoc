@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { FontSize, Radius, Spacing } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
 import type { MonthFilter } from '@/hooks/use-month-filter';
-import { formatLongMonth } from '@/lib/format';
+import { useDateFormat } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 
 import { PickerSheet } from './picker-sheet';
@@ -21,6 +21,7 @@ const MONTHS_FORWARD = 12;
 export function MonthSelector({ filter }: Props) {
   const palette = usePalette();
   const t = useT();
+  const { longMonth } = useDateFormat();
   const [open, setOpen] = useState(false);
 
   const options = useMemo(() => {
@@ -31,11 +32,11 @@ export function MonthSelector({ filter }: Props) {
       const d = new Date(now.getFullYear(), now.getMonth() + offset, 1, 12, 0, 0, 0);
       return {
         value: String(offset),
-        label: formatLongMonth(d),
+        label: longMonth(d),
         hint: offset === 0 ? t('day.picker.today') : undefined,
       };
     });
-  }, [t]);
+  }, [t, longMonth]);
 
   return (
     <>

@@ -16,7 +16,7 @@ import { ThemedText } from '@/components/themed-text';
 import { FontSize, Spacing } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
 import { guessIncomeCategory } from '@/lib/categorize-income';
-import { formatLongMonth, parseMoneyInput } from '@/lib/format';
+import { parseMoneyInput, useDateFormat } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { useIncomes } from '@/lib/store/incomes';
 import { CURRENCY_SYMBOL, useSettings } from '@/lib/store/settings';
@@ -29,6 +29,7 @@ export default function IncomeFormScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
   const t = useT();
+  const { longMonth } = useDateFormat();
 
   const palette = usePalette();
 
@@ -49,7 +50,7 @@ export default function IncomeFormScreen() {
     () => (existing ? new Date(existing.date) : new Date()),
     [existing]
   );
-  const monthLabel = formatLongMonth(baseDate);
+  const monthLabel = longMonth(baseDate);
 
   const [source, setSource] = useState(existing?.source ?? '');
   const [amountText, setAmountText] = useState(

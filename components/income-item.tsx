@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react';
 
-import { formatShortDate, useMoney } from '@/lib/format';
+import { useDateFormat, useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { INCOME_CATEGORY_COLOR, type Income } from '@/types/models';
 
@@ -15,6 +15,7 @@ interface Props {
 function IncomeItemInner({ income, onPress, planned }: Props) {
   const t = useT();
   const money = useMoney();
+  const { shortDate } = useDateFormat();
   const handlePress = useCallback(() => onPress(income.id), [onPress, income.id]);
   const category = t(`incomeCategory.${income.category}` as never);
 
@@ -24,7 +25,7 @@ function IncomeItemInner({ income, onPress, planned }: Props) {
       dotColor={INCOME_CATEGORY_COLOR[income.category]}
       title={income.source}
       badge={planned ? t('badge.planned') : undefined}
-      meta={`${category} · ${formatShortDate(income.date)}`}
+      meta={`${category} · ${shortDate(income.date)}`}
       amount={money(income.amount)}
       amountTone="positive"
       amountPrefix="+"

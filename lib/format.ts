@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { t } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 import { localeFor, useSettings, type Language } from '@/lib/store/settings';
 import type { Subscription } from '@/types/models';
 
@@ -51,47 +51,51 @@ export const parseMoneyInput = (raw: string): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export const formatShortDate = (iso: string): string => {
-  const { language } = useSettings.getState().settings;
-  const locale = localeFor(language);
-  const fmt = new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: 'short',
-  });
-  return fmt.format(new Date(iso));
-};
+const shortDateIn = (iso: string, locale: string): string =>
+  new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(new Date(iso));
 
-export const formatDateTime = (iso: string): string => {
-  const { language } = useSettings.getState().settings;
-  const locale = localeFor(language);
-  const fmt = new Intl.DateTimeFormat(locale, {
+const dateTimeIn = (iso: string, locale: string): string =>
+  new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-  });
-  return fmt.format(new Date(iso));
-};
+  }).format(new Date(iso));
 
-export const formatLongMonth = (date: Date): string => {
-  const { language } = useSettings.getState().settings;
+const longMonthIn = (date: Date, locale: string): string =>
+  new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(date);
+
+export interface DateFormatters {
+  shortDate: (iso: string) => string;
+  dateTime: (iso: string) => string;
+  longMonth: (date: Date) => string;
+  billingSchedule: (sub: Subscription) => string;
+  periodLabel: (period: Subscription['billingPeriod']) => string;
+}
+
+// Reactive date/label formatters — they re-render with the active language, the
+// same way useMoney() reacts to currency. Use these in render instead of reading
+// settings via getState() (which wouldn't refresh on a language change).
+export function useDateFormat(): DateFormatters {
+  const language = useSettings((s) => s.settings.language);
+  const t = useT();
   const locale = localeFor(language);
-  const fmt = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' });
-  return fmt.format(date);
-};
-
-export const formatBillingSchedule = (sub: Subscription): string => {
-  const day = Math.max(1, Math.min(31, sub.billingDay));
-  if (sub.billingPeriod === 'yearly') {
-    const monthIdx = Math.max(0, Math.min(11, (sub.billingMonth ?? 1) - 1));
-    const { language } = useSettings.getState().settings;
-    const locale = localeFor(language);
-    const fmt = new Intl.DateTimeFormat(locale, { month: 'short' });
-    const month = fmt.format(new Date(2000, monthIdx, 1));
-    return `${month} ${day}`;
-  }
-  return t('format.day', { day });
-};
-
-export const formatPeriodLabel = (period: Subscription['billingPeriod']): string =>
-  period === 'yearly' ? t('review.perYearLabel') : t('review.perMonth');
+  return {
+    shortDate: (iso) => shortDateIn(iso, locale),
+    dateTime: (iso) => dateTimeIn(iso, locale),
+    longMonth: (date) => longMonthIn(date, locale),
+    billingSchedule: (sub) => {
+      const day = Math.max(1, Math.min(31, sub.billingDay));
+      if (sub.billingPeriod === 'yearly') {
+        const monthIdx = Math.max(0, Math.min(11, (sub.billingMonth ?? 1) - 1));
+        const month = new Intl.DateTimeFormat(locale, { month: 'short' }).format(
+          new Date(2000, monthIdx, 1)
+        );
+        return `${month} ${day}`;
+      }
+      return t('format.day', { day });
+    },
+    periodLabel: (period) =>
+      period === 'yearly' ? t('review.perYearLabel') : t('review.perMonth'),
+  };
+}

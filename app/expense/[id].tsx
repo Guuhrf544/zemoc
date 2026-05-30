@@ -15,7 +15,7 @@ import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
 import { FontSize, Spacing } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
-import { formatLongMonth, parseMoneyInput } from '@/lib/format';
+import { parseMoneyInput, useDateFormat } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { useExpenses } from '@/lib/store/expenses';
 import { CURRENCY_SYMBOL, useSettings } from '@/lib/store/settings';
@@ -24,6 +24,7 @@ import { ALL_CATEGORIES, type Category } from '@/types/models';
 export default function ExpenseFormScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const t = useT();
+  const { longMonth } = useDateFormat();
 
   const palette = usePalette();
 
@@ -57,7 +58,7 @@ export default function ExpenseFormScreen() {
   }
 
   const existingDate = new Date(existing.date);
-  const monthLabel = formatLongMonth(existingDate);
+  const monthLabel = longMonth(existingDate);
 
   const onSave = () => {
     const desc = description.trim();

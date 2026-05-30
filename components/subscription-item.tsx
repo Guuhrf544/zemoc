@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react';
 
-import { formatBillingSchedule, formatPeriodLabel, useMoney } from '@/lib/format';
+import { useDateFormat, useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import type { Subscription } from '@/types/models';
 
@@ -14,6 +14,7 @@ interface Props {
 function SubscriptionItemInner({ subscription, onPress }: Props) {
   const t = useT();
   const money = useMoney();
+  const { billingSchedule, periodLabel } = useDateFormat();
   const handlePress = useCallback(
     () => onPress(subscription.id),
     [onPress, subscription.id]
@@ -27,9 +28,9 @@ function SubscriptionItemInner({ subscription, onPress }: Props) {
     <ListItemRow
       onPress={handlePress}
       title={subscription.name}
-      meta={`${formatBillingSchedule(subscription)}${categoryText ? ` · ${categoryText}` : ''}`}
+      meta={`${billingSchedule(subscription)}${categoryText ? ` · ${categoryText}` : ''}`}
       amount={money(subscription.amount)}
-      trailingSublabel={formatPeriodLabel(subscription.billingPeriod)}
+      trailingSublabel={periodLabel(subscription.billingPeriod)}
     />
   );
 }

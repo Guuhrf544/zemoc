@@ -12,7 +12,7 @@ import { usePalette } from '@/hooks/use-palette';
 import { exportBackup, importBackup } from '@/lib/backup';
 import { enableCloudSync, peekRemote, syncUpNow } from '@/lib/cloud-sync';
 import { exportCsv } from '@/lib/export-csv';
-import { formatDateTime } from '@/lib/format';
+import { useDateFormat } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { clearPin } from '@/lib/security';
 import { useExpenses } from '@/lib/store/expenses';
@@ -31,6 +31,7 @@ type PickerKey = 'language' | 'currency' | 'appearance';
 export default function SettingsScreen() {
   const palette = usePalette();
   const t = useT();
+  const { dateTime } = useDateFormat();
 
   const settings = useSettings((s) => s.settings);
   const update = useSettings((s) => s.update);
@@ -361,7 +362,7 @@ export default function SettingsScreen() {
                   label={t('settings.icloud.lastSync')}
                   value={
                     settings.lastCloudSyncAt
-                      ? formatDateTime(settings.lastCloudSyncAt)
+                      ? dateTime(settings.lastCloudSyncAt)
                       : t('settings.icloud.neverSynced')
                   }
                 />

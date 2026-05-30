@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { FontSize, Radius, Spacing } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
-import { formatLongMonth } from '@/lib/format';
+import { useDateFormat } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { localeFor, useSettings } from '@/lib/store/settings';
 
@@ -29,6 +29,7 @@ export function DayPickerSheet({
 }: Props) {
   const palette = usePalette();
   const t = useT();
+  const { longMonth } = useDateFormat();
   const language = useSettings((s) => s.settings.language);
 
   const { rows, todayDay, weekdayLabels } = useMemo(() => {
@@ -72,7 +73,7 @@ export function DayPickerSheet({
           {t('day.picker.title')}
         </ThemedText>
         <ThemedText style={[styles.subtitle, { color: palette.textMuted }]}>
-          {formatLongMonth(monthDate)}
+          {longMonth(monthDate)}
         </ThemedText>
       </View>
 
