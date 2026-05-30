@@ -29,7 +29,7 @@ export default function PrivacyScreen() {
           Privacy Policy
         </ThemedText>
         <ThemedText style={[styles.meta, { color: palette.textMuted }]}>
-          Last updated: April 2026
+          Last updated: May 2026
         </ThemedText>
 
         <ThemedText style={[styles.h2, { color: palette.text }]}>
@@ -39,12 +39,25 @@ export default function PrivacyScreen() {
           Zemoc is designed to be private by default. All financial data you
           enter — subscriptions, expenses, incomes, profile details — is stored
           locally on your device using the operating system&apos;s storage and
-          secure keychain. We do not collect, transmit, or have access to your
-          financial data.
+          secure keychain. We do not operate any server and do not have access
+          to your financial data.
         </ThemedText>
 
         <ThemedText style={[styles.h2, { color: palette.text }]}>
-          2. Photos
+          2. iCloud sync (optional)
+        </ThemedText>
+        <ThemedText style={[styles.p, { color: palette.text }]}>
+          If you enable &quot;Sync with iCloud&quot; in Settings, Zemoc stores a
+          copy of your data inside your personal iCloud container. This lets you
+          back up your data and sync it across your iOS devices. The data lives
+          in your iCloud account and is processed by Apple under its terms.
+          Zemoc and its developer do not have access to it. You can disable sync
+          at any time in Settings; existing iCloud data can be removed from your
+          device&apos;s iOS settings under iCloud Storage.
+        </ThemedText>
+
+        <ThemedText style={[styles.h2, { color: palette.text }]}>
+          3. Photos
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
           If you add a profile photo, it is stored locally on your device only.
@@ -52,26 +65,26 @@ export default function PrivacyScreen() {
         </ThemedText>
 
         <ThemedText style={[styles.h2, { color: palette.text }]}>
-          3. Biometrics and PIN
+          4. Biometrics and PIN
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
           If you enable PIN or biometric unlock, your PIN is stored using your
-          device&apos;s secure keychain. Biometric verification is handled
-          entirely by the operating system — Zemoc only receives a pass/fail
-          result.
+          device&apos;s secure keychain and never leaves your device — it is
+          excluded from iCloud sync. Biometric verification is handled entirely
+          by the operating system — Zemoc only receives a pass/fail result.
         </ThemedText>
 
         <ThemedText style={[styles.h2, { color: palette.text }]}>
-          4. Backups and exports
+          5. Backups and exports
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
-          When you use the backup or export features, a file is generated on
-          your device and you decide how to share or save it. Zemoc never
-          uploads the file automatically.
+          When you use the manual backup or export features, a file is generated
+          on your device and you decide how to share or save it. Zemoc never
+          uploads it automatically to any server we control.
         </ThemedText>
 
         <ThemedText style={[styles.h2, { color: palette.text }]}>
-          5. Analytics and tracking
+          6. Analytics and tracking
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
           Zemoc does not use analytics SDKs, advertising SDKs, or third-party
@@ -79,14 +92,14 @@ export default function PrivacyScreen() {
         </ThemedText>
 
         <ThemedText style={[styles.h2, { color: palette.text }]}>
-          6. Children
+          7. Children
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
           Zemoc is not directed to children under 13.
         </ThemedText>
 
         <ThemedText style={[styles.h2, { color: palette.text }]}>
-          7. Contact
+          8. Contact
         </ThemedText>
         <ThemedText style={[styles.p, { color: palette.text }]}>
           Privacy questions? Write to elogia.dev@gmail.com.

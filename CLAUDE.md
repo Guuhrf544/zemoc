@@ -7,9 +7,11 @@ Bundle ID: `app.zemoc` — Scheme: `zemoc://` — Slug: `zemoc`
 ## Stack
 
 - **Expo SDK 54** + Expo Router 6 + TypeScript 5.9 + React 19 + React Native 0.81
-- **Zustand 5** com `persist` → **AsyncStorage** (offline-first, sem backend)
+- **expo-dev-client** — não usa mais Expo Go (1.1.0+, por causa do iCloud)
+- **Zustand 5** com `persist` → **AsyncStorage** (offline-first)
 - **expo-secure-store** + **expo-local-authentication** (PIN + biometria)
 - **expo-document-picker** + **expo-sharing** + **expo-file-system** (backup/export)
+- **react-native-cloud-store** — sync opcional via iCloud Documents (iOS only)
 - **Intl** (NumberFormat / DateTimeFormat) para formatação localizada
 - Cores da marca em [constants/theme.ts](constants/theme.ts). Tema claro/escuro/automático reativo.
 
@@ -24,7 +26,18 @@ cd "/Users/francisconi/Documents/Apps Claude/zemoc"
 npx expo start
 ```
 
-Abra **Expo Go** no celular e escaneie o QR code. Hot reload automático. Se mudar `app.json`, precisa `--clear` e reabrir o app totalmente.
+A partir de **1.1.0** o app NÃO roda mais no Expo Go (iCloud exige código nativo). Usa Development Build:
+
+```bash
+# Primeira vez (ou quando muda app.json/deps nativas):
+eas build --profile development --platform ios
+# Instala o .ipa no celular pelo link/QR code
+
+# Dia a dia:
+npx expo start --dev-client
+```
+
+Hot reload funciona normalmente no dev client.
 
 ## Estrutura
 
@@ -76,21 +89,24 @@ zemoc/
 │   │   ├── incomes.ts            # CRUD de receitas
 │   │   ├── profile.ts            # nome, foto, email
 │   │   └── lock.ts               # estado de "unlocked" (em memória, sem persist)
-│   ├── i18n.ts                   # ~220 strings en/pt com useT() e t()
-│   ├── format.ts                 # useMoney(), formatShortDate, formatLongMonth, etc.
+│   ├── i18n.ts                   # ~240 strings en/pt com useT() e t()
+│   ├── format.ts                 # useMoney(), formatShortDate, formatLongMonth, formatDateTime, etc.
 │   ├── categorize.ts             # "uber" → Transport, "mercado" → Food
 │   ├── categorize-income.ts      # "salário" → Salary, etc.
 │   ├── parse-day.ts              # dateForDay(monthRef, day, isCurrentMonth) @ noon local
 │   ├── billing.ts                # próximas cobranças das assinaturas
 │   ├── insights.ts               # previsão fim de mês + categorias top
 │   ├── export-csv.ts             # exporta tudo como CSV (via Sharing)
-│   ├── backup.ts                 # exporta JSON completo + importa com DocumentPicker
+│   ├── backup.ts                 # build/parse/apply payload + export/import manual
+│   ├── icloud.ts                 # camada baixa: read/write/exist do iCloud Documents
+│   ├── cloud-sync.ts             # orquestração: debounce upload, decideOnLaunch, enable
 │   └── security.ts               # savePin/verifyPin/clearPin via SecureStore
 ├── hooks/
 │   ├── use-color-scheme.ts       # resolve light/dark/auto a partir de settings
 │   ├── use-color-scheme.web.ts   # mesmo para web
 │   ├── use-theme-color.ts        # helper
-│   └── use-month-filter.ts       # offset do mês (±12) + derivados
+│   ├── use-month-filter.ts       # offset do mês (±12) + derivados
+│   └── use-cloud-sync.ts         # monta sync no launch + foreground, controla subscriptions
 ├── types/models.ts               # Subscription, Expense, Income, Category, etc.
 ├── constants/theme.ts            # Colors (light/dark com hero, onAccent, etc.), Spacing, Radius, FontSize
 ├── app.json                      # Bundle ID, plugins (secure-store, local-auth)
@@ -111,11 +127,13 @@ zemoc/
 - **Notificações:** toggle (ainda sem lógica real de push)
 - **Segurança:** PIN 4 dígitos (armazenado em SecureStore — Keychain iOS / EncryptedSharedPreferences Android) + biometria opcional (FaceID/TouchID/Android biometric via expo-local-authentication). Lock gate cobre o app inteiro no start se PIN ativo.
 - **Dados:** Backup JSON completo (share sheet) + Restore JSON (DocumentPicker) + Export CSV
+- **iCloud sync (1.1.0+):** toggle opt-in nas Configurações. Salva `zemoc-data.json` no container `iCloud.app.zemoc`. Last-write-wins entre devices. PIN e foto de perfil ficam **de fora** do sync (per-device). Upload debounced em 5s; pull no launch e no foreground (rate-limited 30s).
 - **Sobre:** Versão + Termos de uso + Política de privacidade (telas locais) + contato
 
 ## Decisões importantes
 
-- **Sem autenticação/backend:** app é 100% local. PIN+biometria protege o device. Ver `~/.claude/.../memory/project_zemoc_no_auth.md` para o contexto da decisão.
+- **iCloud Documents, não CloudKit Database:** sync via 1 arquivo JSON simples vs schema de registros. Mantém arquitetura simples e dados portáveis. Trade-off: conflito multi-device = last-write-wins. Ver `~/.claude/.../memory/project_zemoc_icloud_sync.md`.
+- **PIN não sincroniza:** é per-device por design. Cada celular tem seu próprio PIN.
 - **Sem `reactCompiler`:** o experimento quebra reatividade do zustand em SDK 54. Não reativar sem testar. Ver `memory/feedback_react_compiler_zustand.md`.
 - **Datas ao meio-dia local:** `new Date(Y, M, D, 12, 0, 0)` em vez de meia-noite UTC — evita bug de timezone que jogava datas futuras para o mês anterior.
 - **Paleta reativa:** todos os componentes leem `Colors[scheme]`, nada usa `Brand.*` hardcoded (era a causa de o modo claro "não mudar" antes).
@@ -125,11 +143,10 @@ zemoc/
 `saldo = receitas do mês − (gastos realizados + gastos planejados + assinaturas do mês)`.
 Um item é "planejado" se `date > now`. Em meses futuros tudo vira planejado automaticamente.
 
-## Publicação — próximos passos
+## Publicação
 
-1. Apple Developer Program (US$ 99/ano) + Google Play Console (US$ 25 one-time)
-2. Finalizar ícones + splash + screenshots pras lojas
-3. `eas build --platform ios` / `--platform android`
-4. `eas submit`
-
-Ainda não começamos — o MVP está pronto mas ainda não rodamos `eas build`. Quando o usuário voltar, provavelmente vai querer atacar esse caminho.
+- **1.0.0** ✅ Publicado na App Store (somente iOS; Android pausado)
+- **1.1.0** — em preparação: adiciona iCloud sync. Pendente:
+  - Atualizar App Privacy no App Store Connect (declarar uso de iCloud)
+  - `eas build --profile production --platform ios`
+  - `eas submit --platform ios`
