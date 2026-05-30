@@ -1,50 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-
 import type { Expense } from '@/types/models';
 
-import { isValidAmount, sanitizePatch } from './validate';
+import { createCrudStore } from './create-crud-store';
 
-interface State {
-  items: Expense[];
-  add: (e: Omit<Expense, 'id' | 'createdAt'>) => void;
-  update: (id: string, patch: Partial<Expense>) => void;
-  remove: (id: string) => void;
-}
-
-const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-
-export const useExpenses = create<State>()(
-  persist(
-    (set) => ({
-      items: [],
-      add: (e) =>
-        set((state) =>
-          isValidAmount(e.amount)
-            ? {
-                items: [
-                  ...state.items,
-                  { ...e, id: newId(), createdAt: new Date().toISOString() },
-                ],
-              }
-            : state
-        ),
-      update: (id, patch) =>
-        set((state) => ({
-          items: state.items.map((i) =>
-            i.id === id ? { ...i, ...sanitizePatch<Expense>(patch) } : i
-          ),
-        })),
-      remove: (id) =>
-        set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
-    }),
-    {
-      name: 'zemoc-expenses',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
-);
+export const useExpenses = createCrudStore<Expense>({ name: 'zemoc-expenses' });
 
 export const sumByMonth = (items: Expense[], monthIso: string): number => {
   const month = monthIso.slice(0, 7);
