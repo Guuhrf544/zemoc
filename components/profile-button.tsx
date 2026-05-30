@@ -4,7 +4,7 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { Colors, FontSize } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { getInitials, useProfile } from '@/lib/store/profile';
+import { getInitials, PLACEHOLDER_AVATAR, useProfile } from '@/lib/store/profile';
 
 import { ThemedText } from './themed-text';
 
@@ -29,6 +29,8 @@ export function ProfileButton() {
     >
       {profile.photoUri ? (
         <Image source={{ uri: profile.photoUri }} style={styles.image} />
+      ) : getInitials(profile.name) === PLACEHOLDER_AVATAR ? (
+        <ThemedText style={styles.placeholder}>{PLACEHOLDER_AVATAR}</ThemedText>
       ) : (
         <ThemedText style={[styles.initials, { color: palette.tint }]}>
           {getInitials(profile.name)}
@@ -50,4 +52,5 @@ const styles = StyleSheet.create({
   },
   image: { width: '100%', height: '100%' },
   initials: { fontSize: FontSize.sm, fontWeight: '700' },
+  placeholder: { fontSize: 22, lineHeight: 26, textAlign: 'center' },
 });

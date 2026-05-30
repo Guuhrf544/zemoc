@@ -61,6 +61,18 @@ export const formatShortDate = (iso: string): string => {
   return fmt.format(new Date(iso));
 };
 
+export const formatDateTime = (iso: string): string => {
+  const { language } = useSettings.getState().settings;
+  const locale = localeFor(language);
+  const fmt = new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return fmt.format(new Date(iso));
+};
+
 export const formatLongMonth = (date: Date): string => {
   const { language } = useSettings.getState().settings;
   const locale = localeFor(language);

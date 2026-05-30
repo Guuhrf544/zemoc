@@ -4,8 +4,6 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 export interface Profile {
   name: string;
-  email: string;
-  phone?: string;
   photoUri?: string;
 }
 
@@ -14,7 +12,7 @@ interface State {
   update: (patch: Partial<Profile>) => void;
 }
 
-const EMPTY: Profile = { name: '', email: '', phone: undefined, photoUri: undefined };
+const EMPTY: Profile = { name: '', photoUri: undefined };
 
 export const useProfile = create<State>()(
   persist(
@@ -26,13 +24,25 @@ export const useProfile = create<State>()(
     {
       name: 'zemoc-profile',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      migrate: (persisted: any) => {
+        const prev = (persisted?.profile ?? {}) as Record<string, unknown>;
+        return {
+          profile: {
+            name: typeof prev.name === 'string' ? prev.name : '',
+            photoUri: typeof prev.photoUri === 'string' ? prev.photoUri : undefined,
+          },
+        } as State;
+      },
     }
   )
 );
 
+export const PLACEHOLDER_AVATAR = '👤';
+
 export const getInitials = (name: string): string => {
   const trimmed = name.trim();
-  if (!trimmed) return '?';
+  if (!trimmed) return PLACEHOLDER_AVATAR;
   const parts = trimmed.split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();

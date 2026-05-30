@@ -2,7 +2,7 @@
   "expo": {
     "name": "Zemoc",
     "slug": "zemoc",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "zemoc",
@@ -56,6 +56,21 @@
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID to unlock your data."
+        }
+      ],
+      [
+        "react-native-cloud-store",
+        {
+          "iCloud": {
+            "documents": [
+              {
+                "containerId": "iCloud.app.zemoc",
+                "enabled": true,
+                "visible": false
+              }
+            ],
+            "environment": "Production"
+          }
         }
       ]
     ],

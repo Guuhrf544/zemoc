@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { PickerSheet } from '@/components/picker-sheet';
 import { SettingsRow } from '@/components/settings-row';
@@ -10,7 +10,9 @@ import { SettingsSection } from '@/components/settings-section';
 import { Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { exportBackup, importBackup } from '@/lib/backup';
+import { enableCloudSync, peekRemote, syncUpNow } from '@/lib/cloud-sync';
 import { exportCsv } from '@/lib/export-csv';
+import { formatDateTime } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { clearPin } from '@/lib/security';
 import { useExpenses } from '@/lib/store/expenses';
@@ -39,8 +41,12 @@ export default function SettingsScreen() {
   const subscriptions = useSubscriptions((s) => s.items);
 
   const [picker, setPicker] = useState<PickerKey | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+
+  const hasLocalData =
+    incomes.length > 0 || expenses.length > 0 || subscriptions.length > 0;
 
   const LANGUAGES: { value: Language; label: string }[] = [
     { value: 'pt', label: t('settings.language.pt') },
@@ -85,6 +91,10 @@ export default function SettingsScreen() {
   };
 
   const handleToggleBiometric = async (next: boolean) => {
+    if (!settings.securityPin) {
+      Alert.alert(t('biometric.requirePin.title'), t('biometric.requirePin.msg'));
+      return;
+    }
     if (!next) {
       update({ securityBiometric: false });
       return;
@@ -117,6 +127,106 @@ export default function SettingsScreen() {
         t('backup.failed'),
         error instanceof Error ? error.message : t('settings.export.failed.default')
       );
+    }
+  };
+
+  const handleToggleCloudSync = async (next: boolean) => {
+    if (!next) {
+      update({ cloudSync: false });
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const remote = await peekRemote();
+
+      if (remote === null) {
+        if (!hasLocalData) {
+          await enableCloudSync({ direction: 'push' });
+          return;
+        }
+        await enableCloudSync({ direction: 'push' });
+        return;
+      }
+
+      if (!hasLocalData) {
+        await enableCloudSync({ direction: 'pull', remote });
+        return;
+      }
+
+      Alert.alert(
+        t('settings.icloud.cloudFound.title'),
+        t('settings.icloud.cloudFound.msg'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('settings.icloud.cloudFound.useDevice'),
+            onPress: async () => {
+              setIsSyncing(true);
+              try {
+                await enableCloudSync({ direction: 'push' });
+              } catch (err) {
+                Alert.alert(
+                  t('settings.icloud.syncFailed'),
+                  err instanceof Error ? err.message : t('settings.export.failed.default')
+                );
+              } finally {
+                setIsSyncing(false);
+              }
+            },
+          },
+          {
+            text: t('settings.icloud.cloudFound.useCloud'),
+            onPress: async () => {
+              setIsSyncing(true);
+              try {
+                await enableCloudSync({ direction: 'pull', remote });
+              } catch (err) {
+                Alert.alert(
+                  t('settings.icloud.syncFailed'),
+                  err instanceof Error ? err.message : t('settings.export.failed.default')
+                );
+              } finally {
+                setIsSyncing(false);
+              }
+            },
+          },
+        ]
+      );
+    } catch (err) {
+      if (err instanceof Error && err.message === 'iCloud unavailable') {
+        Alert.alert(
+          t('settings.icloud.unavailable.title'),
+          t('settings.icloud.unavailable.msg')
+        );
+      } else {
+        Alert.alert(
+          t('settings.icloud.syncFailed'),
+          err instanceof Error ? err.message : t('settings.export.failed.default')
+        );
+      }
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncNow = async () => {
+    setIsSyncing(true);
+    try {
+      const ok = await syncUpNow();
+      if (!ok) {
+        Alert.alert(
+          t('settings.icloud.unavailable.title'),
+          t('settings.icloud.unavailable.msg')
+        );
+      }
+    } catch (err) {
+      Alert.alert(
+        t('settings.icloud.syncFailed'),
+        err instanceof Error ? err.message : t('settings.export.failed.default')
+      );
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -212,7 +322,7 @@ export default function SettingsScreen() {
             label={t('settings.security.biometric')}
             value={!settings.securityPin ? t('settings.security.biometric.hint') : undefined}
             switchValue={settings.securityPin ? settings.securityBiometric : false}
-            onSwitchChange={settings.securityPin ? handleToggleBiometric : undefined}
+            onSwitchChange={handleToggleBiometric}
             isLast
           />
         </SettingsSection>
@@ -235,6 +345,37 @@ export default function SettingsScreen() {
             isLast
           />
         </SettingsSection>
+
+        {Platform.OS === 'ios' ? (
+          <SettingsSection title={t('settings.icloud')}>
+            <SettingsRow
+              icon="icloud"
+              label={t('settings.icloud.toggle')}
+              switchValue={settings.cloudSync}
+              onSwitchChange={handleToggleCloudSync}
+              isLast={!settings.cloudSync}
+            />
+            {settings.cloudSync ? (
+              <>
+                <SettingsRow
+                  icon="clock"
+                  label={t('settings.icloud.lastSync')}
+                  value={
+                    settings.lastCloudSyncAt
+                      ? formatDateTime(settings.lastCloudSyncAt)
+                      : t('settings.icloud.neverSynced')
+                  }
+                />
+                <SettingsRow
+                  icon="arrow.counterclockwise"
+                  label={isSyncing ? t('settings.icloud.syncing') : t('settings.icloud.syncNow')}
+                  onPress={isSyncing ? undefined : handleSyncNow}
+                  isLast
+                />
+              </>
+            ) : null}
+          </SettingsSection>
+        ) : null}
 
         <SettingsSection title={t('settings.about')}>
           <SettingsRow

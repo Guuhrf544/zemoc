@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 
 import { LockGate } from '@/components/lock-gate';
 import { Colors } from '@/constants/theme';
+import { useCloudSync } from '@/hooks/use-cloud-sync';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAutoLock } from '@/lib/use-autolock';
 
@@ -41,6 +42,7 @@ export default function RootLayout() {
   const scheme = useColorScheme() ?? 'dark';
   const navTheme = scheme === 'dark' ? NavThemeDark : NavThemeLight;
   useAutoLock();
+  useCloudSync();
 
   return (
     <SafeAreaProvider>

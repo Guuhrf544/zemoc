@@ -16,10 +16,10 @@ import { useProfile, type Profile } from './store/profile';
 import { useSettings, type Settings } from './store/settings';
 import { useSubscriptions } from './store/subscriptions';
 
-const SUPPORTED_VERSIONS = [1, 2] as const;
-type BackupVersion = (typeof SUPPORTED_VERSIONS)[number];
+export const SUPPORTED_VERSIONS = [1, 2] as const;
+export type BackupVersion = (typeof SUPPORTED_VERSIONS)[number];
 
-interface BackupV2 {
+export interface BackupV2 {
   version: 2;
   createdAt: string;
   incomes: Income[];
@@ -37,7 +37,7 @@ const isOptStr = (v: unknown): v is string | undefined =>
 const isOptNum = (v: unknown): v is number | undefined =>
   v === undefined || (typeof v === 'number' && Number.isFinite(v));
 
-function validExpense(x: unknown): x is Expense {
+export function validExpense(x: unknown): x is Expense {
   if (!x || typeof x !== 'object') return false;
   const o = x as Partial<Expense>;
   return (
@@ -51,7 +51,7 @@ function validExpense(x: unknown): x is Expense {
   );
 }
 
-function validIncome(x: unknown): x is Income {
+export function validIncome(x: unknown): x is Income {
   if (!x || typeof x !== 'object') return false;
   const o = x as Partial<Income>;
   return (
@@ -65,19 +65,17 @@ function validIncome(x: unknown): x is Income {
   );
 }
 
-function sanitizeProfile(x: unknown): Profile | null {
+export function sanitizeProfile(x: unknown): Profile | null {
   if (!x || typeof x !== 'object') return null;
-  const o = x as Partial<Profile>;
-  if (!isStr(o.name) || !isStr(o.email)) return null;
+  const o = x as Partial<Profile> & { email?: unknown; phone?: unknown };
+  if (!isStr(o.name)) return null;
   return {
     name: o.name,
-    email: o.email,
-    phone: isStr(o.phone) ? o.phone : undefined,
     photoUri: isStr(o.photoUri) ? o.photoUri : undefined,
   };
 }
 
-function sanitizeSettings(x: unknown): Settings | null {
+export function sanitizeSettings(x: unknown): Settings | null {
   if (!x || typeof x !== 'object') return null;
   const o = x as Partial<Settings>;
   if (o.language !== 'en' && o.language !== 'pt') return null;
@@ -93,10 +91,12 @@ function sanitizeSettings(x: unknown): Settings | null {
     notifications: o.notifications,
     securityPin: o.securityPin,
     securityBiometric: o.securityBiometric,
+    cloudSync: typeof o.cloudSync === 'boolean' ? o.cloudSync : false,
+    lastCloudSyncAt: isStr(o.lastCloudSyncAt) ? o.lastCloudSyncAt : null,
   };
 }
 
-function validSubscription(x: unknown): x is Subscription {
+export function validSubscription(x: unknown): x is Subscription {
   if (!x || typeof x !== 'object') return false;
   const o = x as Partial<Subscription>;
   return (
@@ -114,58 +114,26 @@ function validSubscription(x: unknown): x is Subscription {
   );
 }
 
-export const exportBackup = async (): Promise<void> => {
-  const backup: BackupV2 = {
-    version: 2,
-    createdAt: new Date().toISOString(),
-    incomes: useIncomes.getState().items,
-    expenses: useExpenses.getState().items,
-    subscriptions: useSubscriptions.getState().items,
-    profile: useProfile.getState().profile,
-    settings: useSettings.getState().settings,
-  };
+export const buildBackupPayload = (): BackupV2 => ({
+  version: 2,
+  createdAt: new Date().toISOString(),
+  incomes: useIncomes.getState().items,
+  expenses: useExpenses.getState().items,
+  subscriptions: useSubscriptions.getState().items,
+  profile: useProfile.getState().profile,
+  settings: useSettings.getState().settings,
+});
 
-  const json = JSON.stringify(backup, null, 2);
-  const stamp = new Date().toISOString().slice(0, 10);
-  const filename = `zemoc-backup-${stamp}.json`;
-  const uri = `${FileSystem.cacheDirectory}${filename}`;
+export interface ParsedBackup {
+  expenses: Expense[];
+  incomes: Income[];
+  subscriptions: Subscription[];
+  profile: Profile | null;
+  settings: Settings | null;
+  createdAt: string | null;
+}
 
-  await FileSystem.writeAsStringAsync(uri, json, {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
-
-  if (!(await Sharing.isAvailableAsync())) {
-    throw new Error('Sharing not available on this device');
-  }
-
-  await Sharing.shareAsync(uri, {
-    mimeType: 'application/json',
-    dialogTitle: 'Zemoc backup',
-    UTI: 'public.json',
-  });
-};
-
-export const importBackup = async (): Promise<boolean> => {
-  const result = await DocumentPicker.getDocumentAsync({
-    type: 'application/json',
-    copyToCacheDirectory: true,
-  });
-  if (result.canceled) return false;
-
-  const asset = result.assets?.[0];
-  if (!asset) throw new Error('No file selected');
-
-  const content = await FileSystem.readAsStringAsync(asset.uri, {
-    encoding: FileSystem.EncodingType.UTF8,
-  });
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(content);
-  } catch {
-    throw new Error('File is not valid JSON');
-  }
-
+export function parseBackupPayload(parsed: unknown): ParsedBackup {
   if (!parsed || typeof parsed !== 'object') {
     throw new Error('Malformed backup');
   }
@@ -212,11 +180,78 @@ export const importBackup = async (): Promise<boolean> => {
     }
   }
 
-  useIncomes.setState({ items: incomes });
-  useExpenses.setState({ items: expenses });
-  useSubscriptions.setState({ items: subscriptions });
-  if (profileSafe) useProfile.setState({ profile: profileSafe });
-  if (settingsSafe) useSettings.setState({ settings: settingsSafe });
+  return {
+    expenses,
+    incomes,
+    subscriptions,
+    profile: profileSafe,
+    settings: settingsSafe,
+    createdAt: isStr(b.createdAt) ? b.createdAt : null,
+  };
+}
 
+export const applyBackupPayload = (parsed: ParsedBackup): void => {
+  useIncomes.setState({ items: parsed.incomes });
+  useExpenses.setState({ items: parsed.expenses });
+  useSubscriptions.setState({ items: parsed.subscriptions });
+  if (parsed.profile) useProfile.setState({ profile: parsed.profile });
+  if (parsed.settings) {
+    // Preserve local-only fields (cloudSync, lastCloudSyncAt) — those belong to this device.
+    const local = useSettings.getState().settings;
+    useSettings.setState({
+      settings: {
+        ...parsed.settings,
+        cloudSync: local.cloudSync,
+        lastCloudSyncAt: local.lastCloudSyncAt,
+      },
+    });
+  }
+};
+
+export const exportBackup = async (): Promise<void> => {
+  const backup = buildBackupPayload();
+  const json = JSON.stringify(backup, null, 2);
+  const stamp = new Date().toISOString().slice(0, 10);
+  const filename = `zemoc-backup-${stamp}.json`;
+  const uri = `${FileSystem.cacheDirectory}${filename}`;
+
+  await FileSystem.writeAsStringAsync(uri, json, {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('Sharing not available on this device');
+  }
+
+  await Sharing.shareAsync(uri, {
+    mimeType: 'application/json',
+    dialogTitle: 'Zemoc backup',
+    UTI: 'public.json',
+  });
+};
+
+export const importBackup = async (): Promise<boolean> => {
+  const result = await DocumentPicker.getDocumentAsync({
+    type: 'application/json',
+    copyToCacheDirectory: true,
+  });
+  if (result.canceled) return false;
+
+  const asset = result.assets?.[0];
+  if (!asset) throw new Error('No file selected');
+
+  const content = await FileSystem.readAsStringAsync(asset.uri, {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error('File is not valid JSON');
+  }
+
+  const data = parseBackupPayload(parsed);
+  applyBackupPayload(data);
   return true;
 };

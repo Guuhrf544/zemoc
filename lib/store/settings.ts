@@ -13,6 +13,8 @@ export interface Settings {
   notifications: boolean;
   securityPin: boolean;
   securityBiometric: boolean;
+  cloudSync: boolean;
+  lastCloudSyncAt: string | null;
 }
 
 interface State {
@@ -27,6 +29,8 @@ const DEFAULT: Settings = {
   notifications: true,
   securityPin: false,
   securityBiometric: false,
+  cloudSync: false,
+  lastCloudSyncAt: null,
 };
 
 export const useSettings = create<State>()(
@@ -39,25 +43,29 @@ export const useSettings = create<State>()(
     {
       name: 'zemoc-settings',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 2,
+      version: 3,
       partialize: (state) => ({ settings: state.settings }) as State,
       migrate: (persisted: any, version) => {
         const prev = (persisted?.settings ?? {}) as Record<string, unknown>;
-        if (version < 2) {
-          const migrated: Settings = {
-            language: (prev.language as Language) ?? DEFAULT.language,
-            currency: (prev.currency as CurrencyCode) ?? DEFAULT.currency,
-            appearance: (prev.appearance as Appearance) ?? DEFAULT.appearance,
-            notifications:
-              typeof prev.notifications === 'boolean' ? prev.notifications : DEFAULT.notifications,
-            securityPin:
-              typeof prev.securityPin === 'boolean' ? prev.securityPin : DEFAULT.securityPin,
-            securityBiometric:
-              typeof prev.securityBiometric === 'boolean'
-                ? prev.securityBiometric
-                : DEFAULT.securityBiometric,
-          };
-          return { settings: migrated } as State;
+        const base: Settings = {
+          language: (prev.language as Language) ?? DEFAULT.language,
+          currency: (prev.currency as CurrencyCode) ?? DEFAULT.currency,
+          appearance: (prev.appearance as Appearance) ?? DEFAULT.appearance,
+          notifications:
+            typeof prev.notifications === 'boolean' ? prev.notifications : DEFAULT.notifications,
+          securityPin:
+            typeof prev.securityPin === 'boolean' ? prev.securityPin : DEFAULT.securityPin,
+          securityBiometric:
+            typeof prev.securityBiometric === 'boolean'
+              ? prev.securityBiometric
+              : DEFAULT.securityBiometric,
+          cloudSync:
+            typeof prev.cloudSync === 'boolean' ? prev.cloudSync : DEFAULT.cloudSync,
+          lastCloudSyncAt:
+            typeof prev.lastCloudSyncAt === 'string' ? prev.lastCloudSyncAt : DEFAULT.lastCloudSyncAt,
+        };
+        if (version < 3) {
+          return { settings: base } as State;
         }
         return persisted as State;
       },

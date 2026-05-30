@@ -19,7 +19,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useT } from '@/lib/i18n';
-import { getInitials, useProfile } from '@/lib/store/profile';
+import { getInitials, PLACEHOLDER_AVATAR, useProfile } from '@/lib/store/profile';
 
 export default function ProfileScreen() {
   const scheme = useColorScheme() ?? 'dark';
@@ -30,8 +30,6 @@ export default function ProfileScreen() {
   const updateProfile = useProfile((s) => s.update);
 
   const [name, setName] = useState(profile.name);
-  const [email, setEmail] = useState(profile.email);
-  const [phone, setPhone] = useState(profile.phone ?? '');
   const [photoUri, setPhotoUri] = useState<string | undefined>(profile.photoUri);
 
   const pickImage = async () => {
@@ -56,17 +54,11 @@ export default function ProfileScreen() {
 
   const onSave = () => {
     const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
     if (!trimmedName) {
       Alert.alert(t('alert.name.title'), t('profile.alert.nameRequired.msg'));
       return;
     }
-    updateProfile({
-      name: trimmedName,
-      email: trimmedEmail,
-      phone: phone.trim() || undefined,
-      photoUri,
-    });
+    updateProfile({ name: trimmedName, photoUri });
     router.back();
   };
 
@@ -100,6 +92,10 @@ export default function ProfileScreen() {
           >
             {photoUri ? (
               <Image source={{ uri: photoUri }} style={styles.avatarImage} />
+            ) : getInitials(name) === PLACEHOLDER_AVATAR ? (
+              <ThemedText style={styles.avatarPlaceholder}>
+                {PLACEHOLDER_AVATAR}
+              </ThemedText>
             ) : (
               <ThemedText style={[styles.avatarInitials, { color: palette.tint }]}>
                 {getInitials(name)}
@@ -123,21 +119,6 @@ export default function ProfileScreen() {
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
-          />
-          <Input
-            label={t('profile.email')}
-            placeholder={t('profile.email.placeholder')}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <Input
-            label={t('profile.phone')}
-            placeholder={t('profile.phone.placeholder')}
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
           />
         </View>
 
@@ -194,6 +175,7 @@ const styles = StyleSheet.create({
   },
   avatarImage: { width: '100%', height: '100%' },
   avatarInitials: { fontSize: FontSize.display, fontWeight: '700' },
+  avatarPlaceholder: { fontSize: 56, lineHeight: 64, textAlign: 'center' },
   changePhoto: {
     fontSize: FontSize.sm,
     fontWeight: '600',
