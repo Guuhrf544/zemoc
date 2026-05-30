@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { formatLongMonth } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { localeFor, useSettings } from '@/lib/store/settings';
+
+import { BottomSheet } from './bottom-sheet';
 import { ThemedText } from './themed-text';
 
 interface Props {
@@ -66,121 +67,88 @@ export function DayPickerSheet({
   }, [monthDate, language]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <SafeAreaView
-        edges={['bottom']}
-        style={[
-          styles.sheet,
-          { backgroundColor: palette.background, borderColor: palette.border },
-        ]}
-      >
-        <View style={styles.handle}>
-          <View style={[styles.handleBar, { backgroundColor: palette.border }]} />
-        </View>
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={styles.header}>
+        <ThemedText style={[styles.title, { color: palette.text }]}>
+          {t('day.picker.title')}
+        </ThemedText>
+        <ThemedText style={[styles.subtitle, { color: palette.textMuted }]}>
+          {formatLongMonth(monthDate)}
+        </ThemedText>
+      </View>
 
-        <View style={styles.header}>
-          <ThemedText style={[styles.title, { color: palette.text }]}>
-            {t('day.picker.title')}
-          </ThemedText>
-          <ThemedText style={[styles.subtitle, { color: palette.textMuted }]}>
-            {formatLongMonth(monthDate)}
-          </ThemedText>
-        </View>
+      <View style={styles.weekdayRow}>
+        {weekdayLabels.map((label, i) => (
+          <View key={i} style={styles.weekdayCell}>
+            <ThemedText style={[styles.weekday, { color: palette.textMuted }]}>
+              {label}
+            </ThemedText>
+          </View>
+        ))}
+      </View>
 
-        <View style={styles.weekdayRow}>
-          {weekdayLabels.map((label, i) => (
-            <View key={i} style={styles.weekdayCell}>
-              <ThemedText style={[styles.weekday, { color: palette.textMuted }]}>
-                {label}
-              </ThemedText>
-            </View>
-          ))}
-        </View>
-
-        {rows.map((row, rIdx) => (
-          <View key={rIdx} style={styles.row}>
-            {row.map((day, cIdx) => {
-              if (day === null) {
-                return <View key={cIdx} style={styles.cellEmpty} />;
-              }
-              const isSelected = day === selectedDay;
-              const isToday = day === todayDay;
-              return (
-                <Pressable
-                  key={cIdx}
-                  onPress={() => onSelectDay(day)}
-                  style={({ pressed }) => [
-                    styles.cell,
+      {rows.map((row, rIdx) => (
+        <View key={rIdx} style={styles.row}>
+          {row.map((day, cIdx) => {
+            if (day === null) {
+              return <View key={cIdx} style={styles.cellEmpty} />;
+            }
+            const isSelected = day === selectedDay;
+            const isToday = day === todayDay;
+            return (
+              <Pressable
+                key={cIdx}
+                onPress={() => onSelectDay(day)}
+                style={({ pressed }) => [
+                  styles.cell,
+                  {
+                    backgroundColor: isSelected
+                      ? palette.tint
+                      : isToday
+                        ? palette.surfaceAlt
+                        : 'transparent',
+                    opacity: pressed ? 0.6 : 1,
+                  },
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    styles.cellText,
                     {
-                      backgroundColor: isSelected
-                        ? palette.tint
-                        : isToday
-                          ? palette.surfaceAlt
-                          : 'transparent',
-                      opacity: pressed ? 0.6 : 1,
+                      color: isSelected ? palette.onAccent : palette.text,
+                      fontWeight: isSelected || isToday ? '700' : '500',
                     },
                   ]}
                 >
-                  <ThemedText
-                    style={[
-                      styles.cellText,
-                      {
-                        color: isSelected
-                          ? palette.onAccent
-                          : palette.text,
-                        fontWeight: isSelected || isToday ? '700' : '500',
-                      },
-                    ]}
-                  >
-                    {day}
-                  </ThemedText>
-                </Pressable>
-              );
-            })}
-          </View>
-        ))}
-
-        <View style={styles.actions}>
-          <Pressable
-            onPress={() => onSelectDay(null)}
-            style={({ pressed }) => [
-              styles.actionBtn,
-              {
-                backgroundColor: palette.surfaceAlt,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <ThemedText style={[styles.actionLabel, { color: palette.text }]}>
-              {t('day.picker.clear')}
-            </ThemedText>
-          </Pressable>
+                  {day}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
         </View>
-      </SafeAreaView>
-    </Modal>
+      ))}
+
+      <View style={styles.actions}>
+        <Pressable
+          onPress={() => onSelectDay(null)}
+          style={({ pressed }) => [
+            styles.actionBtn,
+            {
+              backgroundColor: palette.surfaceAlt,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <ThemedText style={[styles.actionLabel, { color: palette.text }]}>
+            {t('day.picker.clear')}
+          </ThemedText>
+        </Pressable>
+      </View>
+    </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: {
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    borderTopWidth: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  handle: {
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-  },
-  handleBar: { width: 40, height: 4, borderRadius: 2 },
   header: { gap: 2, marginBottom: Spacing.md },
   title: {
     fontSize: FontSize.lg,

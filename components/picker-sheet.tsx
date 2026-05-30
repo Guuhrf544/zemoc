@@ -1,17 +1,10 @@
 import { useEffect, useRef } from 'react';
-import {
-  Dimensions,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
+import { Colors, FontSize, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+import { BottomSheet } from './bottom-sheet';
 import { ThemedText } from './themed-text';
 import { IconSymbol } from './ui/icon-symbol';
 
@@ -58,86 +51,50 @@ export function PickerSheet<T extends string>({
   }, [visible, selectedIndex]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <SafeAreaView
-        edges={['bottom']}
-        style={[
-          styles.sheet,
-          { backgroundColor: palette.background, borderColor: palette.border },
-        ]}
+    <BottomSheet visible={visible} onClose={onClose}>
+      <ThemedText style={[styles.title, { color: palette.text }]}>{title}</ThemedText>
+      <ScrollView
+        ref={scrollRef}
+        style={{ maxHeight: maxListHeight }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.handle}>
-          <View style={[styles.handleBar, { backgroundColor: palette.border }]} />
-        </View>
-        <ThemedText style={[styles.title, { color: palette.text }]}>
-          {title}
-        </ThemedText>
-        <ScrollView
-          ref={scrollRef}
-          style={{ maxHeight: maxListHeight }}
-          showsVerticalScrollIndicator={false}
-        >
-          {options.map((opt, idx) => {
-            const active = opt.value === value;
-            return (
-              <Pressable
-                key={opt.value}
-                onPress={() => onChange(opt.value)}
-                style={({ pressed }) => [
-                  styles.row,
-                  idx !== options.length - 1 && {
-                    borderBottomWidth: StyleSheet.hairlineWidth,
-                    borderBottomColor: palette.border,
-                  },
-                  { opacity: pressed ? 0.6 : 1 },
-                ]}
-              >
-                <View style={{ flex: 1 }}>
-                  <ThemedText style={[styles.label, { color: palette.text }]}>
-                    {opt.label}
+        {options.map((opt, idx) => {
+          const active = opt.value === value;
+          return (
+            <Pressable
+              key={opt.value}
+              onPress={() => onChange(opt.value)}
+              style={({ pressed }) => [
+                styles.row,
+                idx !== options.length - 1 && {
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  borderBottomColor: palette.border,
+                },
+                { opacity: pressed ? 0.6 : 1 },
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                <ThemedText style={[styles.label, { color: palette.text }]}>
+                  {opt.label}
+                </ThemedText>
+                {opt.hint ? (
+                  <ThemedText style={[styles.hint, { color: palette.textMuted }]}>
+                    {opt.hint}
                   </ThemedText>
-                  {opt.hint ? (
-                    <ThemedText style={[styles.hint, { color: palette.textMuted }]}>
-                      {opt.hint}
-                    </ThemedText>
-                  ) : null}
-                </View>
-                {active ? (
-                  <IconSymbol
-                    name="checkmark"
-                    size={20}
-                    color={palette.tint}
-                  />
                 ) : null}
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
+              </View>
+              {active ? (
+                <IconSymbol name="checkmark" size={20} color={palette.tint} />
+              ) : null}
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: {
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    borderTopWidth: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  handle: {
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-  },
-  handleBar: { width: 40, height: 4, borderRadius: 2 },
   title: {
     fontSize: FontSize.lg,
     fontWeight: '700',
