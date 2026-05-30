@@ -1,20 +1,31 @@
 import type { Subscription } from '@/types/models';
 
+const daysInMonth = (year: number, month: number): number =>
+  new Date(year, month + 1, 0).getDate();
+
+// Builds a date at local noon, clamping the day to the last valid day of the
+// target month. This prevents billingDay 29-31 from overflowing into the next
+// month (e.g. day 31 in February would otherwise roll over to March 2/3).
+const billingDateAtNoon = (year: number, month: number, day: number): Date => {
+  const clampedDay = Math.max(1, Math.min(daysInMonth(year, month), day));
+  return new Date(year, month, clampedDay, 12, 0, 0, 0);
+};
+
 export const nextBillingDate = (sub: Subscription, now: Date = new Date()): Date => {
   const year = now.getFullYear();
   const month = now.getMonth();
-  const day = Math.max(1, Math.min(31, sub.billingDay));
+  const day = sub.billingDay;
 
   if (sub.billingPeriod === 'yearly') {
     const billingMonthIdx = Math.max(1, Math.min(12, sub.billingMonth ?? 1)) - 1;
-    const thisYear = new Date(year, billingMonthIdx, day, 12, 0, 0, 0);
+    const thisYear = billingDateAtNoon(year, billingMonthIdx, day);
     if (thisYear.getTime() >= now.getTime() - 24 * 60 * 60 * 1000) return thisYear;
-    return new Date(year + 1, billingMonthIdx, day, 12, 0, 0, 0);
+    return billingDateAtNoon(year + 1, billingMonthIdx, day);
   }
 
-  const thisMonth = new Date(year, month, day, 12, 0, 0, 0);
+  const thisMonth = billingDateAtNoon(year, month, day);
   if (thisMonth.getTime() >= now.getTime() - 24 * 60 * 60 * 1000) return thisMonth;
-  return new Date(year, month + 1, day, 12, 0, 0, 0);
+  return billingDateAtNoon(year, month + 1, day);
 };
 
 export interface UpcomingCharge {
@@ -53,8 +64,7 @@ export const subscriptionsSplitForMonth = (
 ): { actual: number; planned: number } => {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const lastDay = new Date(year, month, daysInMonth, 12, 0, 0, 0);
+  const lastDay = new Date(year, month, daysInMonth(year, month), 12, 0, 0, 0);
   const firstDay = new Date(year, month, 1, 12, 0, 0, 0);
 
   let cutoff: Date;
@@ -66,12 +76,7 @@ export const subscriptionsSplitForMonth = (
   let planned = 0;
   for (const s of subs) {
     if (!isBilledInMonth(s, monthDate)) continue;
-    const billingDate = new Date(
-      year,
-      month,
-      Math.max(1, Math.min(daysInMonth, s.billingDay)),
-      12, 0, 0, 0
-    );
+    const billingDate = billingDateAtNoon(year, month, s.billingDay);
     if (billingDate.getTime() <= cutoff.getTime()) actual += s.amount;
     else planned += s.amount;
   }
