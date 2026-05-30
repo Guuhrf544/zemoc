@@ -4,6 +4,8 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Expense } from '@/types/models';
 
+import { isValidAmount, sanitizePatch } from './validate';
+
 interface State {
   items: Expense[];
   add: (e: Omit<Expense, 'id' | 'createdAt'>) => void;
@@ -18,15 +20,21 @@ export const useExpenses = create<State>()(
     (set) => ({
       items: [],
       add: (e) =>
-        set((state) => ({
-          items: [
-            ...state.items,
-            { ...e, id: newId(), createdAt: new Date().toISOString() },
-          ],
-        })),
+        set((state) =>
+          isValidAmount(e.amount)
+            ? {
+                items: [
+                  ...state.items,
+                  { ...e, id: newId(), createdAt: new Date().toISOString() },
+                ],
+              }
+            : state
+        ),
       update: (id, patch) =>
         set((state) => ({
-          items: state.items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+          items: state.items.map((i) =>
+            i.id === id ? { ...i, ...sanitizePatch<Expense>(patch) } : i
+          ),
         })),
       remove: (id) =>
         set((state) => ({ items: state.items.filter((i) => i.id !== id) })),

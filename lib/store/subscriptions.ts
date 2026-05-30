@@ -4,6 +4,8 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Subscription } from '@/types/models';
 
+import { isValidAmount, sanitizePatch } from './validate';
+
 interface State {
   items: Subscription[];
   add: (s: Omit<Subscription, 'id' | 'createdAt'>) => void;
@@ -18,15 +20,21 @@ export const useSubscriptions = create<State>()(
     (set) => ({
       items: [],
       add: (s) =>
-        set((state) => ({
-          items: [
-            ...state.items,
-            { ...s, id: newId(), createdAt: new Date().toISOString() },
-          ],
-        })),
+        set((state) =>
+          isValidAmount(s.amount)
+            ? {
+                items: [
+                  ...state.items,
+                  { ...s, id: newId(), createdAt: new Date().toISOString() },
+                ],
+              }
+            : state
+        ),
       update: (id, patch) =>
         set((state) => ({
-          items: state.items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+          items: state.items.map((i) =>
+            i.id === id ? { ...i, ...sanitizePatch<Subscription>(patch) } : i
+          ),
         })),
       remove: (id) =>
         set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
