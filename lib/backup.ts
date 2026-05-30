@@ -196,13 +196,21 @@ export const applyBackupPayload = (parsed: ParsedBackup): void => {
   useSubscriptions.setState({ items: parsed.subscriptions });
   if (parsed.profile) useProfile.setState({ profile: parsed.profile });
   if (parsed.settings) {
-    // Preserve local-only fields (cloudSync, lastCloudSyncAt) — those belong to this device.
+    // Preserve local-only fields — these belong to THIS device and must never
+    // come from a backup/sync payload:
+    //  - cloudSync / lastCloudSyncAt: per-device sync state.
+    //  - securityPin / securityBiometric: the PIN lives in this device's
+    //    Keychain. Importing securityPin=true with no PIN stored here would lock
+    //    the user out (verifyPin returns 'no-pin' for any input); importing
+    //    false could silently drop the lock screen. Keep what the device has.
     const local = useSettings.getState().settings;
     useSettings.setState({
       settings: {
         ...parsed.settings,
         cloudSync: local.cloudSync,
         lastCloudSyncAt: local.lastCloudSyncAt,
+        securityPin: local.securityPin,
+        securityBiometric: local.securityBiometric,
       },
     });
   }
