@@ -3,13 +3,11 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePalette } from '@/hooks/use-palette';
 import { useT } from '@/lib/i18n';
 
 export default function TabLayout() {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
 
   return (

@@ -9,8 +9,8 @@ import { Screen } from '@/components/screen';
 import { StatCard } from '@/components/stat-card';
 import { ThemedText } from '@/components/themed-text';
 import { UpcomingCharges } from '@/components/upcoming-charges';
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMonthFilter } from '@/hooks/use-month-filter';
 import { subscriptionsSplitForMonth, upcomingCharges } from '@/lib/billing';
 import { cumulativeCarryover } from '@/lib/carryover';
@@ -20,8 +20,7 @@ import { incomeForMonth, useIncomes } from '@/lib/store/incomes';
 import { useSubscriptions } from '@/lib/store/subscriptions';
 
 export default function DashboardScreen() {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
 
   const subscriptions = useSubscriptions((s) => s.items);

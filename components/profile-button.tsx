@@ -2,8 +2,8 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { Colors, FontSize } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { getInitials, PLACEHOLDER_AVATAR, useProfile } from '@/lib/store/profile';
 
 import { ThemedText } from './themed-text';
@@ -11,8 +11,7 @@ import { ThemedText } from './themed-text';
 const SIZE = 44;
 
 export function ProfileButton() {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const profile = useProfile((s) => s.profile);
 
   return (

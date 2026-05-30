@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { ThemedText } from './themed-text';
 
@@ -11,8 +11,7 @@ interface Props {
 }
 
 export function EmptyState({ title, message }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   return (
     <View

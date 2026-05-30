@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { ThemedText } from './themed-text';
 
@@ -17,8 +17,7 @@ interface Props<T extends string> {
 }
 
 export function Segmented<T extends string>({ options, value, onChange }: Props<T>) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   return (
     <View style={[styles.track, { backgroundColor: palette.surfaceAlt }]}>

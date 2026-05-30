@@ -14,8 +14,8 @@ import { CategoryChips } from '@/components/category-chips';
 import { Input } from '@/components/input';
 import { Segmented } from '@/components/segmented';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, FontSize, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { parseMoneyInput } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { CURRENCY_SYMBOL, useSettings } from '@/lib/store/settings';
@@ -27,8 +27,7 @@ export default function SubscriptionFormScreen() {
   const isNew = id === 'new';
   const t = useT();
 
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   const currency = useSettings((s) => s.settings.currency);
   const currencySymbol = CURRENCY_SYMBOL[currency];

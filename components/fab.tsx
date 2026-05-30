@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 
-import { Colors, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { IconSymbol } from './ui/icon-symbol';
 
@@ -11,8 +11,7 @@ interface Props {
 }
 
 export function FAB({ onPress, bottomOffset = 24 }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   return (
     <Pressable

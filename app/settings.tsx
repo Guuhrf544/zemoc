@@ -7,8 +7,8 @@ import { Alert, Linking, Platform, ScrollView, StyleSheet, View } from 'react-na
 import { PickerSheet } from '@/components/picker-sheet';
 import { SettingsRow } from '@/components/settings-row';
 import { SettingsSection } from '@/components/settings-section';
-import { Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { exportBackup, importBackup } from '@/lib/backup';
 import { enableCloudSync, peekRemote, syncUpNow } from '@/lib/cloud-sync';
 import { exportCsv } from '@/lib/export-csv';
@@ -29,8 +29,7 @@ import { useSubscriptions } from '@/lib/store/subscriptions';
 type PickerKey = 'language' | 'currency' | 'appearance';
 
 export default function SettingsScreen() {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
 
   const settings = useSettings((s) => s.settings);

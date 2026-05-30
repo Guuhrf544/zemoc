@@ -7,16 +7,15 @@ import { FAB } from '@/components/fab';
 import { Screen } from '@/components/screen';
 import { SubscriptionItem } from '@/components/subscription-item';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { subscriptionsMonthlyTotal, useSubscriptions } from '@/lib/store/subscriptions';
 
 export default function SubscriptionsScreen() {
   const items = useSubscriptions((s) => s.items);
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
   const money = useMoney();
 

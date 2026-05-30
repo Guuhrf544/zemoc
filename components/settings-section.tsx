@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { ThemedText } from './themed-text';
 
@@ -12,8 +12,7 @@ interface Props {
 }
 
 export function SettingsSection({ title, children }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   return (
     <View style={styles.wrap}>

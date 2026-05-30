@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors, FontSize, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { ThemedText } from './themed-text';
 
@@ -24,8 +24,7 @@ export function Screen({
   bodyStyle,
   right,
 }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   return (
     <SafeAreaView

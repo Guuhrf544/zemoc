@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import type { MonthFilter } from '@/hooks/use-month-filter';
 import { formatLongMonth } from '@/lib/format';
 import { useT } from '@/lib/i18n';
@@ -19,8 +19,7 @@ const MONTHS_BACK = 12;
 const MONTHS_FORWARD = 12;
 
 export function MonthSelector({ filter }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
   const [open, setOpen] = useState(false);
 

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { CATEGORY_COLOR, type Category } from '@/types/models';
@@ -18,8 +18,7 @@ interface Props {
 }
 
 export function CategoryBarChart({ data }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
   const money = useMoney();
 

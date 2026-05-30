@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors, FontSize, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useT } from '@/lib/i18n';
 import { verifyPin } from '@/lib/security';
 import { useLock } from '@/lib/store/lock';
@@ -16,8 +16,7 @@ import { IconSymbol } from './ui/icon-symbol';
 
 export function LockGate() {
   const t = useT();
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const securityPin = useSettings((s) => s.settings.securityPin);
   const biometric = useSettings((s) => s.settings.securityBiometric);
   const unlocked = useLock((s) => s.unlocked);

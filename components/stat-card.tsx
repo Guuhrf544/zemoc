@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMoney } from '@/lib/format';
 
 import { ThemedText } from './themed-text';
@@ -13,8 +13,7 @@ interface Props {
 }
 
 export function StatCard({ label, value, tone = 'neutral' }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const money = useMoney();
 
   const valueColor =

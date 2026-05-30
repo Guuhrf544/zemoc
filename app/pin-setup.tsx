@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { PinPad } from '@/components/pin-pad';
-import { Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useT } from '@/lib/i18n';
 import { savePin, verifyPin } from '@/lib/security';
 import { useSettings } from '@/lib/store/settings';
@@ -16,8 +16,7 @@ export default function PinSetupScreen() {
   const { mode } = useLocalSearchParams<{ mode?: Mode }>();
   const isChange = mode === 'change';
   const t = useT();
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const update = useSettings((s) => s.update);
 
   const [step, setStep] = useState<Step>(isChange ? 'current' : 'new');

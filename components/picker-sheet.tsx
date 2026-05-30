@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { BottomSheet } from './bottom-sheet';
 import { ThemedText } from './themed-text';
@@ -33,8 +33,7 @@ export function PickerSheet<T extends string>({
   onChange,
   onClose,
 }: Props<T>) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const scrollRef = useRef<ScrollView>(null);
 
   const selectedIndex = options.findIndex((o) => o.value === value);

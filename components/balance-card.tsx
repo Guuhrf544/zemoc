@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-import { Colors, FontSize, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 
@@ -15,8 +15,7 @@ interface Props {
 }
 
 export function BalanceCard({ balance, subtitle, previousBalance }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
   const money = useMoney();
   const positive = balance >= 0;

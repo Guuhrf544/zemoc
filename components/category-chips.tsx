@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { ThemedText } from './themed-text';
 
@@ -18,8 +18,7 @@ export function CategoryChips<T extends string>({
   categories,
   labelFor,
 }: Props<T>) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   return (
     <ScrollView

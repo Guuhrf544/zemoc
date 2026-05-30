@@ -8,8 +8,8 @@ import { MonthSelector } from '@/components/month-selector';
 import { QuickIncomeInput } from '@/components/quick-income-input';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMonthFilter } from '@/hooks/use-month-filter';
 import { useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
@@ -28,8 +28,7 @@ export default function IncomeScreen() {
   const t = useT();
   const money = useMoney();
 
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   const total = useMemo(
     () => incomeForMonth(items, filter.monthIso),

@@ -8,8 +8,8 @@ import { MonthSelector } from '@/components/month-selector';
 import { QuickExpenseInput } from '@/components/quick-expense-input';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMonthFilter } from '@/hooks/use-month-filter';
 import { dateForDay } from '@/lib/parse-day';
 import { useMoney } from '@/lib/format';
@@ -29,8 +29,7 @@ export default function ExpensesScreen() {
   const t = useT();
   const money = useMoney();
 
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   const monthItems = useMemo(
     () => expensesForMonth(items, filter.monthIso),

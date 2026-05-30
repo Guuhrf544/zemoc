@@ -3,8 +3,8 @@ import { Fragment } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Colors, FontSize, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useT } from '@/lib/i18n';
 
 const SECTIONS = [
@@ -19,8 +19,7 @@ const SECTIONS = [
 ] as const;
 
 export default function PrivacyScreen() {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
 
   return (

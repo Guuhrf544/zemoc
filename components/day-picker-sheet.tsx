@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { formatLongMonth } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { localeFor, useSettings } from '@/lib/store/settings';
@@ -27,8 +27,7 @@ export function DayPickerSheet({
   onSelectDay,
   onClose,
 }: Props) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
   const language = useSettings((s) => s.settings.language);
 

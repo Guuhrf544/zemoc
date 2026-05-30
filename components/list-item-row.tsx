@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 
 import { ThemedText } from './themed-text';
 
@@ -34,8 +34,7 @@ function ListItemRowInner({
   amountPrefix,
   trailingSublabel,
 }: ListItemRowProps) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const amountColor = amountTone === 'positive' ? palette.success : palette.text;
 
   return (

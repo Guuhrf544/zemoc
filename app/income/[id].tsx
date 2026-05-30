@@ -13,8 +13,8 @@ import { Button } from '@/components/button';
 import { CategoryChips } from '@/components/category-chips';
 import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, FontSize, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { guessIncomeCategory } from '@/lib/categorize-income';
 import { formatLongMonth, parseMoneyInput } from '@/lib/format';
 import { useT } from '@/lib/i18n';
@@ -30,8 +30,7 @@ export default function IncomeFormScreen() {
   const isNew = id === 'new';
   const t = useT();
 
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
 
   const currency = useSettings((s) => s.settings.currency);
   const currencySymbol = CURRENCY_SYMBOL[currency];

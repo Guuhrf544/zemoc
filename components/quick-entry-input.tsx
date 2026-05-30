@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useMoney } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 
@@ -36,8 +36,7 @@ export function QuickEntryInput<P extends { amount: number }>({
   amountPrefix,
   onSubmit,
 }: QuickEntryInputProps<P>) {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
   const money = useMoney();
 

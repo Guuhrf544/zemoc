@@ -16,14 +16,13 @@ import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, FontSize, Radius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FontSize, Radius, Spacing } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
 import { useT } from '@/lib/i18n';
 import { getInitials, PLACEHOLDER_AVATAR, useProfile } from '@/lib/store/profile';
 
 export default function ProfileScreen() {
-  const scheme = useColorScheme() ?? 'dark';
-  const palette = Colors[scheme];
+  const palette = usePalette();
   const t = useT();
 
   const profile = useProfile((s) => s.profile);
