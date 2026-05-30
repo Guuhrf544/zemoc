@@ -4,6 +4,7 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { FontSize } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
+import { useT } from '@/lib/i18n';
 import { getInitials, PLACEHOLDER_AVATAR, useProfile } from '@/lib/store/profile';
 
 import { ThemedText } from './themed-text';
@@ -13,10 +14,13 @@ const SIZE = 44;
 export function ProfileButton() {
   const palette = usePalette();
   const profile = useProfile((s) => s.profile);
+  const t = useT();
 
   return (
     <Pressable
       onPress={() => router.push('/profile')}
+      accessibilityRole="button"
+      accessibilityLabel={t('a11y.profile')}
       style={({ pressed }) => [
         styles.wrap,
         {

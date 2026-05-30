@@ -122,7 +122,10 @@ export default function IncomeScreen() {
         maxToRenderPerBatch={10}
         windowSize={7}
       />
-      <FAB onPress={() => router.push('/income/new')} />
+      <FAB
+        onPress={() => router.push('/income/new')}
+        accessibilityLabel={t('a11y.addIncome')}
+      />
     </Screen>
   );
 }

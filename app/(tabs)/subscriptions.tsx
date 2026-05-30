@@ -73,7 +73,10 @@ export default function SubscriptionsScreen() {
         />
       )}
 
-      <FAB onPress={() => router.push('/subscription/new')} />
+      <FAB
+        onPress={() => router.push('/subscription/new')}
+        accessibilityLabel={t('a11y.addSubscription')}
+      />
     </Screen>
   );
 }

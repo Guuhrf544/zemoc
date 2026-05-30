@@ -98,6 +98,9 @@ export function DayPickerSheet({
               <Pressable
                 key={cIdx}
                 onPress={() => onSelectDay(day)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={String(day)}
                 style={({ pressed }) => [
                   styles.cell,
                   {
@@ -130,6 +133,7 @@ export function DayPickerSheet({
       <View style={styles.actions}>
         <Pressable
           onPress={() => onSelectDay(null)}
+          accessibilityRole="button"
           style={({ pressed }) => [
             styles.actionBtn,
             {

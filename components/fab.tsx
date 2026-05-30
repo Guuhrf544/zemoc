@@ -7,15 +7,18 @@ import { IconSymbol } from './ui/icon-symbol';
 
 interface Props {
   onPress: () => void;
+  accessibilityLabel: string;
   bottomOffset?: number;
 }
 
-export function FAB({ onPress, bottomOffset = 24 }: Props) {
+export function FAB({ onPress, accessibilityLabel, bottomOffset = 24 }: Props) {
   const palette = usePalette();
 
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         styles.fab,
         {

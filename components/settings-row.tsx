@@ -49,6 +49,7 @@ export function SettingsRow({
           <Switch
             value={switchValue}
             onValueChange={onSwitchChange}
+            accessibilityLabel={label}
             trackColor={{ false: palette.border, true: palette.tint }}
             thumbColor={scheme === 'light' ? '#FFFFFF' : palette.surface}
             ios_backgroundColor={palette.border}
@@ -76,6 +77,8 @@ export function SettingsRow({
     return (
       <Pressable
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={value ? `${label}, ${value}` : label}
         android_ripple={{ color: palette.surfaceAlt }}
         style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
       >

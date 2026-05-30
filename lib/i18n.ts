@@ -135,6 +135,11 @@ const STRINGS = {
     'common.delete': 'Delete',
     'common.cancel': 'Cancel',
     'common.remove.message': 'Remove "{name}"?',
+    'a11y.profile': 'Profile',
+    'a11y.addSubscription': 'Add subscription',
+    'a11y.addIncome': 'Add income',
+    'a11y.close': 'Close',
+    'a11y.deleteDigit': 'Delete',
 
     // Alerts
     'alert.name.title': 'Name required',
@@ -450,6 +455,11 @@ const STRINGS = {
     'common.delete': 'Excluir',
     'common.cancel': 'Cancelar',
     'common.remove.message': 'Remover "{name}"?',
+    'a11y.profile': 'Perfil',
+    'a11y.addSubscription': 'Adicionar assinatura',
+    'a11y.addIncome': 'Adicionar receita',
+    'a11y.close': 'Fechar',
+    'a11y.deleteDigit': 'Apagar',
 
     // Alerts
     'alert.name.title': 'Nome obrigatório',

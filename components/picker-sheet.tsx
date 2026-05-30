@@ -63,6 +63,8 @@ export function PickerSheet<T extends string>({
             <Pressable
               key={opt.value}
               onPress={() => onChange(opt.value)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
               style={({ pressed }) => [
                 styles.row,
                 idx !== options.length - 1 && {

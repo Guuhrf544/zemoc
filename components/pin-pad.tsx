@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { FontSize, Radius, Spacing } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
+import { useT } from '@/lib/i18n';
 
 import { ThemedText } from './themed-text';
 import { IconSymbol } from './ui/icon-symbol';
@@ -23,6 +24,7 @@ export function PinPad({
   onComplete,
 }: Props) {
   const palette = usePalette();
+  const t = useT();
   const [pin, setPin] = useState('');
 
   useEffect(() => {
@@ -96,6 +98,8 @@ export function PinPad({
               <Pressable
                 key={idx}
                 onPress={backspace}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.deleteDigit')}
                 style={({ pressed }) => [
                   styles.key,
                   { opacity: pressed ? 0.5 : 1 },
@@ -109,6 +113,8 @@ export function PinPad({
             <Pressable
               key={idx}
               onPress={() => press(k)}
+              accessibilityRole="button"
+              accessibilityLabel={k}
               style={({ pressed }) => [
                 styles.key,
                 {

@@ -27,6 +27,9 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={opt.label}
             style={[styles.seg, active && { backgroundColor: palette.tint }]}
           >
             <ThemedText

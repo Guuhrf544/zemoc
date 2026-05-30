@@ -32,6 +32,9 @@ export function CategoryChips<T extends string>({
           <Pressable
             key={c}
             onPress={() => onChange(c)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={labelFor ? labelFor(c) : c}
             style={[
               styles.chip,
               {
