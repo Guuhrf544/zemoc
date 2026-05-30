@@ -78,6 +78,10 @@ export const exportCsv = async (
   expenses: Expense[],
   subscriptions: Subscription[]
 ): Promise<void> => {
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('Sharing not available on this device');
+  }
+
   const csv = buildCsv(incomes, expenses, subscriptions);
   const stamp = new Date().toISOString().slice(0, 10);
   const filename = `zemoc-${stamp}.csv`;
@@ -87,14 +91,14 @@ export const exportCsv = async (
     encoding: FileSystem.EncodingType.UTF8,
   });
 
-  const available = await Sharing.isAvailableAsync();
-  if (!available) {
-    throw new Error('Sharing not available on this device');
+  try {
+    await Sharing.shareAsync(uri, {
+      mimeType: 'text/csv',
+      dialogTitle: 'Export Zemoc data',
+      UTI: 'public.comma-separated-values-text',
+    });
+  } finally {
+    // Don't leave the exported financial data sitting in the cache directory.
+    await FileSystem.deleteAsync(uri, { idempotent: true });
   }
-
-  await Sharing.shareAsync(uri, {
-    mimeType: 'text/csv',
-    dialogTitle: 'Export Zemoc data',
-    UTI: 'public.comma-separated-values-text',
-  });
 };

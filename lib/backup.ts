@@ -219,6 +219,10 @@ export const applyBackupPayload = (parsed: ParsedBackup): void => {
 };
 
 export const exportBackup = async (): Promise<void> => {
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('Sharing not available on this device');
+  }
+
   const backup = buildBackupPayload();
   const json = JSON.stringify(backup, null, 2);
   const stamp = new Date().toISOString().slice(0, 10);
@@ -229,15 +233,16 @@ export const exportBackup = async (): Promise<void> => {
     encoding: FileSystem.EncodingType.UTF8,
   });
 
-  if (!(await Sharing.isAvailableAsync())) {
-    throw new Error('Sharing not available on this device');
+  try {
+    await Sharing.shareAsync(uri, {
+      mimeType: 'application/json',
+      dialogTitle: 'Zemoc backup',
+      UTI: 'public.json',
+    });
+  } finally {
+    // Don't leave the full plaintext backup sitting in the cache directory.
+    await FileSystem.deleteAsync(uri, { idempotent: true });
   }
-
-  await Sharing.shareAsync(uri, {
-    mimeType: 'application/json',
-    dialogTitle: 'Zemoc backup',
-    UTI: 'public.json',
-  });
 };
 
 export const importBackup = async (): Promise<boolean> => {
