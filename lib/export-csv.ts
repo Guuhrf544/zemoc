@@ -3,10 +3,20 @@ import * as Sharing from 'expo-sharing';
 
 import type { Expense, Income, Subscription } from '@/types/models';
 
-const escape = (v: string | number): string => {
+// RFC 4180: wrap in quotes if the value contains a quote, comma or newline.
+const quote = (s: string): string =>
+  /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+
+// Machine-generated cell (type label, date, amount, enum) — RFC 4180 only.
+const cell = (v: string | number): string => quote(String(v ?? ''));
+
+// User-controlled free text. A leading =, +, -, @, tab or CR makes Excel /
+// Sheets / Numbers treat the cell as a formula, so prefix it with a single
+// quote to neutralize CSV/formula injection before applying RFC 4180 quoting.
+const textCell = (v: string): string => {
   const s = String(v ?? '');
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-  return s;
+  const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+  return quote(safe);
 };
 
 export const buildCsv = (
@@ -19,17 +29,27 @@ export const buildCsv = (
 
   for (const i of incomes) {
     rows.push(
-      ['Income', i.date.slice(0, 10), i.category, i.source, i.amount.toFixed(2), '']
-        .map(escape)
-        .join(',')
+      [
+        cell('Income'),
+        cell(i.date.slice(0, 10)),
+        cell(i.category),
+        textCell(i.source),
+        cell(i.amount.toFixed(2)),
+        cell(''),
+      ].join(',')
     );
   }
 
   for (const e of expenses) {
     rows.push(
-      ['Expense', e.date.slice(0, 10), e.category, e.description, e.amount.toFixed(2), '']
-        .map(escape)
-        .join(',')
+      [
+        cell('Expense'),
+        cell(e.date.slice(0, 10)),
+        cell(e.category),
+        textCell(e.description),
+        cell(e.amount.toFixed(2)),
+        cell(''),
+      ].join(',')
     );
   }
 
@@ -40,15 +60,13 @@ export const buildCsv = (
         : `monthly · day ${s.billingDay}`;
     rows.push(
       [
-        'Subscription',
-        '',
-        s.category ?? '',
-        s.name,
-        s.amount.toFixed(2),
-        schedule,
-      ]
-        .map(escape)
-        .join(',')
+        cell('Subscription'),
+        cell(''),
+        cell(s.category ?? ''),
+        textCell(s.name),
+        cell(s.amount.toFixed(2)),
+        cell(schedule),
+      ].join(',')
     );
   }
 
