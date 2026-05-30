@@ -4,7 +4,7 @@ import {
   buildBackupPayload,
   parseBackupPayload,
 } from './backup';
-import { downloadBackup, isICloudAvailable, uploadBackup } from './icloud';
+import { downloadBackup, getRemoteModifiedAt, isICloudAvailable, uploadBackup } from './icloud';
 import { useExpenses } from './store/expenses';
 import { useIncomes } from './store/incomes';
 import { useProfile } from './store/profile';
@@ -16,7 +16,6 @@ export interface CloudPayload extends BackupV2 {
 }
 
 const UPLOAD_DEBOUNCE_MS = 5000;
-const REMOTE_NEWER_TOLERANCE_MS = 1000;
 const APPLY_GUARD_MS = 200;
 
 let uploadTimer: ReturnType<typeof setTimeout> | null = null;
@@ -31,7 +30,7 @@ const buildCloudPayload = (): CloudPayload => ({
 const isCloudSyncEnabled = (): boolean =>
   useSettings.getState().settings.cloudSync;
 
-const applyRemote = (payload: CloudPayload): void => {
+const applyRemote = (payload: CloudPayload, remoteAt: number | null): void => {
   const parsed = parseBackupPayload(payload);
   isApplyingRemote = true;
   try {
@@ -39,6 +38,7 @@ const applyRemote = (payload: CloudPayload): void => {
     useSettings.getState().update({
       lastCloudSyncAt:
         typeof payload.updatedAt === 'string' ? payload.updatedAt : new Date().toISOString(),
+      lastSyncedRemoteAt: remoteAt,
     });
   } finally {
     setTimeout(() => {
@@ -50,7 +50,13 @@ const applyRemote = (payload: CloudPayload): void => {
 const pushCurrentToCloud = async (): Promise<string> => {
   const payload = buildCloudPayload();
   await uploadBackup(payload);
-  useSettings.getState().update({ lastCloudSyncAt: payload.updatedAt });
+  // Record the iCloud file's own modification time so later launches can tell
+  // whether ANOTHER device changed it, without comparing app-generated clocks.
+  const remoteAt = await getRemoteModifiedAt();
+  useSettings.getState().update({
+    lastCloudSyncAt: payload.updatedAt,
+    lastSyncedRemoteAt: remoteAt,
+  });
   return payload.updatedAt;
 };
 
@@ -71,7 +77,8 @@ export const syncDownNow = async (): Promise<boolean> => {
   if (!(await isICloudAvailable())) return false;
   const payload = await downloadBackup<CloudPayload>();
   if (!payload) return false;
-  applyRemote(payload);
+  const remoteAt = await getRemoteModifiedAt();
+  applyRemote(payload, remoteAt);
   return true;
 };
 
@@ -87,17 +94,29 @@ export const decideOnLaunch = async (): Promise<LaunchSyncResult> => {
     return 'pushed';
   }
 
-  const localTs = useSettings.getState().settings.lastCloudSyncAt;
-  const remoteTs = typeof payload.updatedAt === 'string' ? payload.updatedAt : null;
+  // Decide using the iCloud file's filesystem modification time (set by the OS)
+  // versus the mtime we recorded at our last sync. Both come from the same
+  // source, so the comparison is immune to device clock skew.
+  const remoteAt = await getRemoteModifiedAt();
+  // mtime unavailable (e.g. stat failed): stay safe and do nothing. Local data
+  // is preserved; pending local edits still upload via the debounced push.
+  if (remoteAt === null) return 'noop';
 
-  const remoteIsNewer = (() => {
-    if (!remoteTs) return false;
-    if (!localTs) return true;
-    return new Date(remoteTs).getTime() > new Date(localTs).getTime() + REMOTE_NEWER_TOLERANCE_MS;
-  })();
+  const lastSynced = useSettings.getState().settings.lastSyncedRemoteAt;
 
-  if (remoteIsNewer) {
-    applyRemote(payload);
+  // No baseline yet (e.g. first launch after upgrading to mtime-based sync, or
+  // sync enabled on another device). Adopt the current remote as our baseline
+  // WITHOUT overwriting local data, so unsynced local edits are never clobbered
+  // on the transition. Genuinely newer remote writes (mtime beyond this
+  // baseline) will pull on later launches.
+  if (lastSynced === null) {
+    useSettings.getState().update({ lastSyncedRemoteAt: remoteAt });
+    return 'noop';
+  }
+
+  // Strictly newer mtime ⇒ another device wrote the file since we last synced.
+  if (remoteAt > lastSynced) {
+    applyRemote(payload, remoteAt);
     return 'pulled';
   }
   return 'noop';
@@ -123,7 +142,8 @@ export const enableCloudSync = async ({ direction, remote }: EnableArgs): Promis
     useSettings.getState().update({ cloudSync: true });
     return;
   }
-  applyRemote(r);
+  const remoteAt = await getRemoteModifiedAt();
+  applyRemote(r, remoteAt);
   useSettings.getState().update({ cloudSync: true });
 };
 

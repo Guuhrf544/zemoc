@@ -93,6 +93,7 @@ export function sanitizeSettings(x: unknown): Settings | null {
     securityBiometric: o.securityBiometric,
     cloudSync: typeof o.cloudSync === 'boolean' ? o.cloudSync : false,
     lastCloudSyncAt: isStr(o.lastCloudSyncAt) ? o.lastCloudSyncAt : null,
+    lastSyncedRemoteAt: typeof o.lastSyncedRemoteAt === 'number' ? o.lastSyncedRemoteAt : null,
   };
 }
 
@@ -209,6 +210,7 @@ export const applyBackupPayload = (parsed: ParsedBackup): void => {
         ...parsed.settings,
         cloudSync: local.cloudSync,
         lastCloudSyncAt: local.lastCloudSyncAt,
+        lastSyncedRemoteAt: local.lastSyncedRemoteAt,
         securityPin: local.securityPin,
         securityBiometric: local.securityBiometric,
       },

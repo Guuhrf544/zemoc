@@ -15,6 +15,10 @@ export interface Settings {
   securityBiometric: boolean;
   cloudSync: boolean;
   lastCloudSyncAt: string | null;
+  // iCloud file modification time (from the filesystem, not the app clock) at
+  // our last successful sync. Used to detect remote changes without trusting
+  // device clocks. Per-device — never synced.
+  lastSyncedRemoteAt: number | null;
 }
 
 interface State {
@@ -31,6 +35,7 @@ const DEFAULT: Settings = {
   securityBiometric: false,
   cloudSync: false,
   lastCloudSyncAt: null,
+  lastSyncedRemoteAt: null,
 };
 
 export const useSettings = create<State>()(
@@ -43,9 +48,9 @@ export const useSettings = create<State>()(
     {
       name: 'zemoc-settings',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 3,
+      version: 4,
       partialize: (state) => ({ settings: state.settings }) as State,
-      migrate: (persisted: any, version) => {
+      migrate: (persisted: any) => {
         const prev = (persisted?.settings ?? {}) as Record<string, unknown>;
         const base: Settings = {
           language: (prev.language as Language) ?? DEFAULT.language,
@@ -63,11 +68,12 @@ export const useSettings = create<State>()(
             typeof prev.cloudSync === 'boolean' ? prev.cloudSync : DEFAULT.cloudSync,
           lastCloudSyncAt:
             typeof prev.lastCloudSyncAt === 'string' ? prev.lastCloudSyncAt : DEFAULT.lastCloudSyncAt,
+          lastSyncedRemoteAt:
+            typeof prev.lastSyncedRemoteAt === 'number'
+              ? prev.lastSyncedRemoteAt
+              : DEFAULT.lastSyncedRemoteAt,
         };
-        if (version < 3) {
-          return { settings: base } as State;
-        }
-        return persisted as State;
+        return { settings: base } as State;
       },
     }
   )
