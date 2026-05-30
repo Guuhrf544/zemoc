@@ -1,10 +1,22 @@
 import { Stack } from 'expo-router';
+import { Fragment } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors, FontSize, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useT } from '@/lib/i18n';
+
+const SECTIONS = [
+  { h: 'privacy.s1.h', p: 'privacy.s1.p' },
+  { h: 'privacy.s2.h', p: 'privacy.s2.p' },
+  { h: 'privacy.s3.h', p: 'privacy.s3.p' },
+  { h: 'privacy.s4.h', p: 'privacy.s4.p' },
+  { h: 'privacy.s5.h', p: 'privacy.s5.p' },
+  { h: 'privacy.s6.h', p: 'privacy.s6.p' },
+  { h: 'privacy.s7.h', p: 'privacy.s7.p' },
+  { h: 'privacy.s8.h', p: 'privacy.s8.p' },
+] as const;
 
 export default function PrivacyScreen() {
   const scheme = useColorScheme() ?? 'dark';
@@ -26,84 +38,22 @@ export default function PrivacyScreen() {
         showsVerticalScrollIndicator={false}
       >
         <ThemedText style={[styles.heading, { color: palette.text }]}>
-          Privacy Policy
+          {t('privacy.title')}
         </ThemedText>
         <ThemedText style={[styles.meta, { color: palette.textMuted }]}>
-          Last updated: May 2026
+          {t('legal.updated')}
         </ThemedText>
 
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          1. What we collect
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          Zemoc is designed to be private by default. All financial data you
-          enter — subscriptions, expenses, incomes, profile details — is stored
-          locally on your device using the operating system&apos;s storage and
-          secure keychain. We do not operate any server and do not have access
-          to your financial data.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          2. iCloud sync (optional)
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          If you enable &quot;Sync with iCloud&quot; in Settings, Zemoc stores a
-          copy of your data inside your personal iCloud container. This lets you
-          back up your data and sync it across your iOS devices. The data lives
-          in your iCloud account and is processed by Apple under its terms.
-          Zemoc and its developer do not have access to it. You can disable sync
-          at any time in Settings; existing iCloud data can be removed from your
-          device&apos;s iOS settings under iCloud Storage.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          3. Photos
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          If you add a profile photo, it is stored locally on your device only.
-          We request photo library access solely for this purpose.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          4. Biometrics and PIN
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          If you enable PIN or biometric unlock, your PIN is stored using your
-          device&apos;s secure keychain and never leaves your device — it is
-          excluded from iCloud sync. Biometric verification is handled entirely
-          by the operating system — Zemoc only receives a pass/fail result.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          5. Backups and exports
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          When you use the manual backup or export features, a file is generated
-          on your device and you decide how to share or save it. Zemoc never
-          uploads it automatically to any server we control.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          6. Analytics and tracking
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          Zemoc does not use analytics SDKs, advertising SDKs, or third-party
-          trackers.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          7. Children
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          Zemoc is not directed to children under 13.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          8. Contact
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          Privacy questions? Write to elogia.dev@gmail.com.
-        </ThemedText>
+        {SECTIONS.map((s, i) => (
+          <Fragment key={s.h}>
+            <ThemedText style={[styles.h2, { color: palette.text }]}>
+              {i + 1}. {t(s.h)}
+            </ThemedText>
+            <ThemedText style={[styles.p, { color: palette.text }]}>
+              {t(s.p)}
+            </ThemedText>
+          </Fragment>
+        ))}
       </ScrollView>
     </>
   );

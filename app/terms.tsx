@@ -1,10 +1,21 @@
 import { Stack } from 'expo-router';
+import { Fragment } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors, FontSize, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useT } from '@/lib/i18n';
+
+const SECTIONS = [
+  { h: 'terms.s1.h', p: 'terms.s1.p' },
+  { h: 'terms.s2.h', p: 'terms.s2.p' },
+  { h: 'terms.s3.h', p: 'terms.s3.p' },
+  { h: 'terms.s4.h', p: 'terms.s4.p' },
+  { h: 'terms.s5.h', p: 'terms.s5.p' },
+  { h: 'terms.s6.h', p: 'terms.s6.p' },
+  { h: 'terms.s7.h', p: 'terms.s7.p' },
+] as const;
 
 export default function TermsScreen() {
   const scheme = useColorScheme() ?? 'dark';
@@ -26,70 +37,22 @@ export default function TermsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <ThemedText style={[styles.heading, { color: palette.text }]}>
-          Terms of Use
+          {t('terms.title')}
         </ThemedText>
         <ThemedText style={[styles.meta, { color: palette.textMuted }]}>
-          Last updated: April 2026
+          {t('legal.updated')}
         </ThemedText>
 
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          1. Acceptance
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          By using Zemoc (&quot;the App&quot;), you agree to these Terms of Use. If you do
-          not agree, please do not use the App.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          2. The service
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          Zemoc is a personal finance tracker. All data you enter (expenses,
-          incomes, subscriptions) is stored locally on your device. The App does
-          not send your financial data to any server.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          3. Your responsibilities
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          You are responsible for the accuracy of the data you enter and for
-          keeping backups of your information. Deleting the App will delete all
-          local data unless you have saved a backup.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          4. No financial advice
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          Zemoc provides tools and summaries based on the data you enter. It does
-          not provide financial, tax, legal, or investment advice. Decisions you
-          make based on the App are your own responsibility.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          5. Limitation of liability
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          The App is provided &quot;as is&quot;, without warranties of any kind. We are
-          not liable for any loss of data or damages arising from the use of the
-          App, to the extent permitted by law.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          6. Changes
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          We may update these Terms from time to time. Continued use of the App
-          after changes means you accept the updated Terms.
-        </ThemedText>
-
-        <ThemedText style={[styles.h2, { color: palette.text }]}>
-          7. Contact
-        </ThemedText>
-        <ThemedText style={[styles.p, { color: palette.text }]}>
-          Questions? Write to elogia.dev@gmail.com.
-        </ThemedText>
+        {SECTIONS.map((s, i) => (
+          <Fragment key={s.h}>
+            <ThemedText style={[styles.h2, { color: palette.text }]}>
+              {i + 1}. {t(s.h)}
+            </ThemedText>
+            <ThemedText style={[styles.p, { color: palette.text }]}>
+              {t(s.p)}
+            </ThemedText>
+          </Fragment>
+        ))}
       </ScrollView>
     </>
   );
