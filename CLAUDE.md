@@ -145,8 +145,11 @@ Um item é "planejado" se `date > now`. Em meses futuros tudo vira planejado aut
 
 ## Publicação
 
-- **1.0.0** ✅ Publicado na App Store (somente iOS; Android pausado)
-- **1.1.0** — em preparação: adiciona iCloud sync. Pendente:
-  - Atualizar App Privacy no App Store Connect (declarar uso de iCloud)
-  - `eas build --profile production --platform ios`
-  - `eas submit --platform ios`
+- **1.0.0** ✅ Publicado na App Store (somente iOS)
+- **1.1.0** ✅ Publicado na App Store — adiciona iCloud sync
+- **1.2.0** — em preparação. iOS: atualização. Android: **1º lançamento** (Google Play). Inclui correções (billing, previsão, validação de amount, CSV, sync por mtime, PIN), acessibilidade, datas reativas a idioma, categorização pt-BR e refactors estruturais (ListItemRow, HeroCard, BottomSheet, QuickEntryInput, createCrudStore, usePalette).
+  - Nome **nas lojas** → "Zemoc - Financial Management" (o nome do app no celular continua "Zemoc" — `expo.name` não muda).
+  - `version` compartilhado em 1.2.0 (iOS e Android); buildNumber/versionCode automáticos via EAS (`autoIncrement`).
+  - **iOS:** `eas build --profile production --platform ios` → `eas submit --platform ios`; no App Store Connect trocar o nome da listagem + colar Novidades.
+  - **Android (1º lançamento):** testar build primeiro (`--profile preview`), depois `eas build --profile production --platform android` → `eas submit --platform android`; criar o app no Play Console (listagem, Data Safety, classificação de conteúdo), nome "Zemoc - Financial Management". iCloud fica desligado no Android (gated por `Platform.OS`).
+  - Notas de release (en/pt): [store-assets/release-notes-1.2.0.md](store-assets/release-notes-1.2.0.md)
